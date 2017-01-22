@@ -1,4 +1,3 @@
-stdMocks = require('std-mocks')
 rimraf = require('rimraf')
 path = require('path')
 fs = require('fs')
@@ -17,14 +16,11 @@ sendLine = (line) ->
 describe 'Haki', ->
   beforeEach ->
     rimraf.sync fixturesPath
-    stdMocks.use()
-
-  afterEach ->
-    stdMocks.restore()
 
   it 'should perform a quick-test', (done) ->
     # destination directory
     haki = new Haki(fixturesPath)
+    temp = null
 
     haki.setGenerator 'test',
       # each generator can have its own sources directory
@@ -39,7 +35,7 @@ describe 'Haki', ->
       # actions can add or modify files
       actions: [
         # custom actions
-        (x) -> console.log 'GOT', x
+        (x) -> temp = x
         # create a new file
         { type: 'add', destFile: '{{snakeCase value}}.txt' }
         # try to create again (error)
@@ -77,12 +73,7 @@ describe 'Haki', ->
 
     # execute and return as promise
     test.run().then (result) ->
-      stdMocks.restore()
-
-      stdout = stdMocks.flush().stdout
-
-      expect(stdout[0]).toContain 'So what?'
-      expect(stdout[1]).toContain "GOT { value: 'OSOM' }"
+      expect(temp).toEqual { value: 'OSOM' }
 
       # log of changes
       expect(result.changes).toEqual [
@@ -127,10 +118,6 @@ describe 'Haki', ->
 
     test = haki.getGenerator('test')
     test.run().then (result) ->
-      stdMocks.restore()
-
-      stdout = stdMocks.flush().stdout
-
       expect(result.error.message).toEqual 'FAIL'
       expect(result.changes).toEqual []
       expect(result.failures).toEqual []
@@ -140,8 +127,6 @@ describe 'Haki', ->
     sendLine ''
 
   it 'can load files', ->
-    stdMocks.restore()
-
     haki = new Haki(fixturesPath)
     haki.load require.resolve('./fixtures/Hakifile')
 
