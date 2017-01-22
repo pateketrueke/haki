@@ -1,0 +1,29 @@
+{
+  "name": "haki",
+  "version": "0.0.0",
+  "main": "index.js",
+  "description": "Super fast generator!",
+  "author": "Alvaro Cabrera <pateketrueke@gmail.com>",
+  "license": "MIT",
+  "scripts": {
+    "dev": "jasmine-node spec --coffee --verbose --autoTest --watchFolders lib",
+    "lint": "eslint lib && coffeelint spec",
+    "spec": "jasmine-node spec --coffee --noStackTrace --captureExceptions",
+    "cover": "istanbul cover --root lib --x '**/spec/**' -- jasmine-node --coffee spec",
+    "cover:up": "codecov --file=coverage/lcov.info --disable=gcov -e TRAVIS_NODE_VERSION",
+    "test": "npm run lint && npm run spec"
+  },
+  "dependencies": {
+    "change-case": "^3.0.1",
+    "fs-extra": "^2.0.0",
+    "mustache": "^2.3.0",
+    "promptly": "^2.1.0"
+  },
+  "devDependencies": {
+    "codecov": "^1.0.1",
+    "coffeelint": "^1.16.0",
+    "eslint": "^3.14.0",
+    "istanbul": "^0.4.5",
+    "jasmine-node": "2.0.0-beta4"
+  }
+}
