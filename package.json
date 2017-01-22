@@ -17,6 +17,7 @@
     "change-case": "^3.0.1",
     "fs-extra": "^2.0.0",
     "mustache": "^2.3.0",
+    "pluralize": "^3.1.0",
     "promptly": "^2.1.0"
   },
   "devDependencies": {

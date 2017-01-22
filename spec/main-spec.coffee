@@ -6,6 +6,14 @@ Haki = require('..')
 
 fixturesPath = path.join(__dirname, 'fixtures/generated')
 
+_skip = false
+_stdout = ''
+_write = process.stdout.write.bind(process.stdout)
+
+process.stdout.write = (data) ->
+  _write(data) unless _skip
+  _stdout += data
+
 readFile = (file) ->
   fs.readFileSync(path.join(fixturesPath, file)).toString()
 
@@ -16,6 +24,9 @@ sendLine = (line) ->
 describe 'Haki', ->
   beforeEach ->
     rimraf.sync fixturesPath
+
+  afterEach ->
+    _stdout = ''
 
   it 'should perform a quick-test', (done) ->
     # destination directory
@@ -72,7 +83,12 @@ describe 'Haki', ->
     test = haki.getGenerator('test')
 
     # execute and return as promise
+    _skip = true
+
     test.run().then (result) ->
+      _skip = false
+
+      expect(_stdout).toContain 'So what?'
       expect(temp).toEqual { value: 'OSOM' }
 
       # log of changes
@@ -117,7 +133,14 @@ describe 'Haki', ->
       }]
 
     test = haki.getGenerator('test')
+
+    _skip = true
+
     test.run().then (result) ->
+      _skip = false
+
+      expect(_stdout).toContain 'Anything:'
+
       expect(result.error.message).toEqual 'FAIL'
       expect(result.changes).toEqual []
       expect(result.failures).toEqual []
