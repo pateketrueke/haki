@@ -138,3 +138,15 @@ describe 'Haki', ->
       done()
 
     sendLine ''
+
+  it 'can load files', ->
+    stdMocks.restore()
+
+    haki = new Haki(fixturesPath)
+    haki.load require.resolve('./fixtures/Hakifile')
+
+    test = haki.getGeneratorList()[0]
+
+    expect(test.name).toEqual 'other'
+    expect(test.task.basePath).toEqual path.join(__dirname, 'fixtures')
+    expect(test.task.description).toEqual 'Another generator test'
