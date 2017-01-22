@@ -1,7 +1,7 @@
 {
   "name": "haki",
   "version": "0.0.0",
-  "main": "index.js",
+  "main": "lib/index.js",
   "description": "Super fast generator!",
   "author": "Alvaro Cabrera <pateketrueke@gmail.com>",
   "license": "MIT",
@@ -24,6 +24,9 @@
     "coffeelint": "^1.16.0",
     "eslint": "^3.14.0",
     "istanbul": "^0.4.5",
-    "jasmine-node": "2.0.0-beta4"
+    "jasmine-node": "2.0.0-beta4",
+    "memory-fs": "^0.4.1",
+    "rimraf": "^2.5.4",
+    "std-mocks": "^1.0.1"
   }
 }
