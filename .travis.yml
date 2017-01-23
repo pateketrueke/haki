@@ -4,7 +4,7 @@ node_js:
   - 6
   - 7
 script:
-  - 'yarn test'
+  - 'yarn cover'
 after_success:
   - 'yarn cover:up'
 notifications:
