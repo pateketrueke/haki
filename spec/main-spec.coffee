@@ -136,12 +136,8 @@ describe 'Haki', ->
 
     sendLine '42\n'
 
-  it 'will fail on missing generators', (done) ->
-    @haki.chooseGeneratorList (err, result) ->
-      expect(err.message).toContain 'There are no registered generators'
-      done()
-
-    sendLine '\n'
+  it 'will fail on missing generators', ->
+    expect(=> @haki.chooseGeneratorList()).toThrow()
 
   it 'can display generators', (done) ->
     temp = null
