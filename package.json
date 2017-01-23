@@ -36,6 +36,7 @@
     "coffeelint": "^1.16.0",
     "eslint": "^3.14.0",
     "istanbul": "^0.4.5",
-    "jasmine-node": "2.0.0-beta4"
+    "jasmine-node": "2.0.0-beta4",
+    "ttys": "^0.0.3"
   }
 }

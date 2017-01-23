@@ -1,4 +1,5 @@
 rimraf = require('rimraf')
+ttys = require('ttys')
 path = require('path')
 fs = require('fs')
 
@@ -11,7 +12,10 @@ readFile = (file) ->
 
 sendLine = (line) ->
   setImmediate ->
-    process.stdin.emit('data', line)
+    ttys.stdin.emit('data', line)
+
+# hide tty-output
+ttys.stdout.write = ->
 
 describe 'Haki', ->
   beforeEach ->
@@ -19,7 +23,7 @@ describe 'Haki', ->
 
   it 'should perform a quick-test', (done) ->
     # destination directory
-    haki = new Haki(fixturesPath, process.stdin)
+    haki = new Haki(fixturesPath, ttys.stdin, ttys.stdout)
     temp = null
 
     haki.setGenerator 'test',
@@ -105,7 +109,7 @@ describe 'Haki', ->
   it 'should handle errors', (done) ->
     pass = []
 
-    haki = new Haki(fixturesPath, process.stdin)
+    haki = new Haki(fixturesPath, ttys.stdin, ttys.stdout)
     haki.setGenerator 'test',
       prompts: [{
         name: 'value'
@@ -129,6 +133,7 @@ describe 'Haki', ->
         ['42', true] # 2
         ['42', true] # \n
       ]
+
       done()
 
     sendLine '42\n'
