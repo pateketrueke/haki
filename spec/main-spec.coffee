@@ -6,41 +6,28 @@ Haki = require('..')
 
 fixturesPath = path.join(__dirname, 'fixtures/generated')
 
-_skip = false
-_stdout = ''
-_write = process.stdout.write.bind(process.stdout)
-
-process.stdout.write = (data) ->
-  _write(data) unless _skip
-  _stdout += data
-
 readFile = (file) ->
   fs.readFileSync(path.join(fixturesPath, file)).toString()
 
 sendLine = (line) ->
   setImmediate ->
-    process.stdin.emit('data', line + '\n')
+    process.stdin.emit('data', line)
 
 describe 'Haki', ->
   beforeEach ->
     rimraf.sync fixturesPath
 
-  afterEach ->
-    _stdout = ''
-
   it 'should perform a quick-test', (done) ->
     # destination directory
-    haki = new Haki(fixturesPath)
+    haki = new Haki(fixturesPath, process.stdin)
     temp = null
 
     haki.setGenerator 'test',
       # each generator can have its own sources directory
       basePath: path.join(__dirname, 'fixtures')
-      description: 'Retrieve a single value for testing'
-      # prompts are from promptly: prompt, choose, confirm, password
+      # prompts are from enquirer: input checkbox confirm expand list password radio rawlist
       prompts: [{
         name: 'value'
-        type: 'prompt'
         message: 'So what?'
       }]
       # actions can add or modify files
@@ -83,12 +70,7 @@ describe 'Haki', ->
     test = haki.getGenerator('test')
 
     # execute and return as promise
-    _skip = true
-
     test.run().then (result) ->
-      _skip = false
-
-      expect(_stdout).toContain 'So what?'
       expect(temp).toEqual { value: 'OSOM' }
 
       # log of changes
@@ -118,36 +100,38 @@ describe 'Haki', ->
       done()
 
     # start input
-    sendLine 'OSOM'
+    sendLine 'OSOM\n'
 
   it 'should handle errors', (done) ->
-    haki = new Haki(fixturesPath)
+    pass = []
+
+    haki = new Haki(fixturesPath, process.stdin)
     haki.setGenerator 'test',
-      basePath: path.join(__dirname, 'fixtures')
-      description: 'This task is broken and it will fail'
       prompts: [{
         name: 'value'
-        type: 'prompt'
         message: 'Anything:'
-        validate: -> throw new Error('FAIL')
+        validate: (value) ->
+          _value = if value is '42'
+            true
+          else
+            'FAIL'
+
+          # capture passed value
+          pass.push([value, _value])
+
+          _value
       }]
 
     test = haki.getGenerator('test')
-
-    _skip = true
-
     test.run().then (result) ->
-      _skip = false
-
-      expect(_stdout).toContain 'Anything:'
-
-      expect(result.error.message).toEqual 'FAIL'
-      expect(result.changes).toEqual []
-      expect(result.failures).toEqual []
-
+      expect(pass).toEqual [
+        ['4', 'FAIL'] # 4
+        ['42', true] # 2
+        ['42', true] # \n
+      ]
       done()
 
-    sendLine ''
+    sendLine '42\n'
 
   it 'can load files', ->
     haki = new Haki(fixturesPath)
