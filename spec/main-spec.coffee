@@ -238,7 +238,9 @@ describe 'Haki', ->
 
   it 'will fail on broken actions', (done) ->
     @haki.setGenerator 'test',
-      actions: [-> throw new Error('FAIL')]
+      actions: [
+        -> throw new Error('FAIL')
+      ]
 
     @haki.runGenerator('test').then (result) ->
       expect(result.error.message).toContain 'FAIL'
