@@ -217,7 +217,7 @@ describe 'Haki', ->
       actions: [{ type: 'copy', destFile: 'a.txt' }]
 
     @haki.runGenerator('test').then (result) ->
-      expect(result.failures[0].error).toContain 'Source file is missing'
+      expect(result.failures[0].error).toEqual 'Source file is missing'
       done()
 
   it 'will fail when pattern is missing', (done) ->
@@ -225,7 +225,7 @@ describe 'Haki', ->
       actions: [{ type: 'modify', destFile: 'a.txt' }]
 
     @haki.runGenerator('test').then (result) ->
-      expect(result.failures[0].error).toContain 'Modify pattern is missing'
+      expect(result.failures[0].error).toEqual 'Modify pattern is missing'
       done()
 
   it 'will fail on unsupported prompts', (done) ->
@@ -267,7 +267,7 @@ describe 'Haki', ->
       ]
 
     @haki.runGenerator('test').then (result) ->
-      expect(result.failures[0].error).toContain "File 'copy.txt' already exists"
+      expect(result.failures[0].error).toEqual "File 'copy.txt' already exists"
       done()
 
   it 'will report missing templates', (done) ->
@@ -275,7 +275,7 @@ describe 'Haki', ->
       actions: [{ type: 'add', destFile: 'a.txt', templateFile: 'b.txt' }]
 
     @haki.runGenerator('test').then (result) ->
-      expect(result.failures[0].error).toContain "Template 'b.txt' does not exists"
+      expect(result.failures[0].error).toEqual "Template 'b.txt' does not exists"
       done()
 
   it 'will report missing sources', (done) ->
@@ -283,7 +283,7 @@ describe 'Haki', ->
       actions: [{ type: 'copy', srcFile: 'a.txt', destFile: 'b.txt' }]
 
     @haki.runGenerator('test').then (result) ->
-      expect(result.failures[0].error).toContain "File 'a.txt' does not exists"
+      expect(result.failures[0].error).toEqual "File 'a.txt' does not exists"
       done()
 
   it 'will report unsupported actions', (done) ->
@@ -291,7 +291,7 @@ describe 'Haki', ->
       actions: [{ type: 'dunno', destFile: 'a.txt' }]
 
     @haki.runGenerator('test').then (result) ->
-      expect(result.failures[0].error).toContain "Unsupported 'dunno' action"
+      expect(result.failures[0].error).toEqual "Unsupported 'dunno' action"
       done()
 
   it 'will stop when abortOnFail is true', (done) ->
