@@ -155,6 +155,15 @@ describe 'Haki', ->
 
     sendLine '\n'
 
+  it 'can prompt manually', (done) ->
+    @haki.prompt
+      name: 'input'
+    .then (value) ->
+      expect(value).toEqual 'OK'
+      done()
+
+    sendLine 'OK\n'
+
   it 'can load files', ->
     @haki.load require.resolve('./fixtures/Hakifile')
     @haki.load '../Hakifile.js'
