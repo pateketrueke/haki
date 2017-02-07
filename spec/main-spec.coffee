@@ -39,34 +39,34 @@ describe 'Haki', ->
         # custom actions
         (x) -> temp = x
         # create a new file
-        { type: 'add', destFile: '{{snakeCase value}}.txt' }
+        { type: 'add', destPath: '{{snakeCase value}}.txt' }
         # try to create again (error)
-        { type: 'add', destFile: '{{snakeCase value}}.txt' }
+        { type: 'add', destPath: '{{snakeCase value}}.txt' }
         # add some content to it
         {
           type: 'modify'
           pattern: /^/
-          destFile: '{{snakeCase value}}.txt'
+          destPath: '{{snakeCase value}}.txt'
           template: '<!-- placeholder -->\nValue: {{constantCase value}}'
         }
         # modify the content (again)
         {
           type: 'modify'
           pattern: /(<!-- placeholder -->)/
-          destFile: '{{snakeCase value}}.txt'
+          destPath: '{{snakeCase value}}.txt'
           template: 'MORE CONTENT GOES HERE\n$1'
         }
         # add from file templates
         {
           type: 'add'
-          destFile: '{{snakeCase value}}_copy.txt'
-          templateFile: 'templates/sample.txt'
+          srcPath: 'templates/sample.txt'
+          destPath: '{{snakeCase value}}_copy.txt'
         }
         # copy files
         {
           type: 'copy'
-          srcFile: '{{snakeCase value}}_copy.txt'
-          destFile: '{{constantCase value}}_REAL.TXT'
+          srcPath: 'templates/test.txt'
+          destPath: '{{constantCase value}}_TEST.TXT'
         }
       ]
 
@@ -79,20 +79,17 @@ describe 'Haki', ->
 
       # log of changes
       expect(result.changes).toEqual [
-        { type: 'add', destFile: 'osom.txt' }
-        { type: 'modify', destFile: 'osom.txt' }
-        { type: 'modify', destFile: 'osom.txt' }
-        { type: 'add', destFile: 'osom_copy.txt' }
-        { type: 'copy', srcFile: 'osom_copy.txt', destFile: 'OSOM_REAL.TXT' }
+        { type: 'add', destPath: 'osom.txt' }
+        { type: 'modify', destPath: 'osom.txt' }
+        { type: 'modify', destPath: 'osom.txt' }
+        { type: 'add', destPath: 'osom_copy.txt' }
+        { type: 'copy', destPath: 'OSOM_TEST.TXT' }
       ]
 
       # log of failures
       expect(result.failures).toEqual [
-        { type: 'add', destFile: 'osom.txt', error: "File 'osom.txt' already exists" }
+        { type: 'add', destPath: 'osom.txt', error: new Error("File 'osom.txt' already exists") }
       ]
-
-      # test copies
-      expect(readFile('osom_copy.txt')).toEqual readFile('OSOM_REAL.TXT')
 
       # final content
       expect(readFile 'osom.txt').toEqual '''
@@ -101,6 +98,9 @@ describe 'Haki', ->
       Value: OSOM
       '''
 
+      done()
+    .catch (error) ->
+      console.log 'This should not happen', error
       done()
 
     # start input
@@ -149,11 +149,20 @@ describe 'Haki', ->
         temp = 42
         []
 
-    @haki.chooseGeneratorList ->
+    @haki.chooseGeneratorList().then ->
       expect(temp).toEqual 42
       done()
 
     sendLine '\n'
+
+  it 'can prompt manually', (done) ->
+    @haki.prompt
+      name: 'input'
+    .then (value) ->
+      expect(value).toEqual 'OK'
+      done()
+
+    sendLine 'OK\n'
 
   it 'can load files', ->
     @haki.load require.resolve('./fixtures/Hakifile')
@@ -204,36 +213,36 @@ describe 'Haki', ->
 
     sendLine 'b\n'
 
-  it 'will fail when destFile is missing', (done) ->
+  it 'will fail when destPath is missing', (done) ->
     @haki.setGenerator 'test',
       actions: [{}]
 
-    @haki.runGenerator('test').then (result) ->
-      expect(result.error.message).toContain 'Destination file is missing'
+    @haki.runGenerator('test').catch (error) ->
+      expect(error.message).toContain 'Destination file is missing'
       done()
 
-  it 'will fail when srcFile is missing', (done) ->
+  it 'will fail when srcPath is missing', (done) ->
     @haki.setGenerator 'test',
-      actions: [{ type: 'copy', destFile: 'a.txt' }]
+      actions: [{ type: 'copy', destPath: 'a.txt' }]
 
     @haki.runGenerator('test').then (result) ->
-      expect(result.failures[0].error).toEqual 'Source file is missing'
+      expect(result.failures[0].error).toEqual new Error('Source file is missing')
       done()
 
   it 'will fail when pattern is missing', (done) ->
     @haki.setGenerator 'test',
-      actions: [{ type: 'modify', destFile: 'a.txt' }]
+      actions: [{ type: 'modify', destPath: 'a.txt' }]
 
     @haki.runGenerator('test').then (result) ->
-      expect(result.failures[0].error).toEqual 'Modify pattern is missing'
+      expect(result.failures[0].error).toEqual new Error('Modify pattern is missing')
       done()
 
   it 'will fail on unsupported prompts', (done) ->
     @haki.setGenerator 'test',
       prompts: [{ type: 'x' }]
 
-    @haki.runGenerator('test').then (result) ->
-      expect(result.error.message).toContain "Unsupported 'x' prompt"
+    @haki.runGenerator('test').catch (error) ->
+      expect(error.message).toContain "Unsupported 'x' prompt"
       done()
 
   it 'will fail on broken actions', (done) ->
@@ -242,8 +251,8 @@ describe 'Haki', ->
         -> throw new Error('FAIL')
       ]
 
-    @haki.runGenerator('test').then (result) ->
-      expect(result.error.message).toContain 'FAIL'
+    @haki.runGenerator('test').catch (error) ->
+      expect(error.message).toContain 'FAIL'
       done()
 
   it 'will fail on broken prompts', (done) ->
@@ -254,8 +263,8 @@ describe 'Haki', ->
         validate: -> throw new Error('FAIL')
       }]
 
-    @haki.runGenerator('test').then (result) ->
-      expect(result.error.message).toContain 'FAIL'
+    @haki.runGenerator('test').catch (error) ->
+      expect(error.message).toContain 'FAIL'
       done()
 
     sendLine 'y\n'
@@ -264,42 +273,42 @@ describe 'Haki', ->
     @haki.setGenerator 'test',
       basePath: path.join(__dirname, 'fixtures')
       actions: [
-        { type: 'add', destFile: 'copy.txt', srcFile: 'templates/sample.txt' }
-        { type: 'copy', destFile: 'copy.txt', srcFile: 'copy.txt' }
+        { type: 'add', destPath: 'copy.txt', srcPath: 'templates/sample.txt' }
+        { type: 'copy', destPath: 'copy.txt', srcPath: 'templates/test.txt' }
       ]
 
     @haki.runGenerator('test').then (result) ->
-      expect(result.failures[0].error).toEqual "File 'copy.txt' already exists"
+      expect(result.failures[0].error).toEqual new Error("File 'copy.txt' already exists")
       done()
 
   it 'will report missing templates', (done) ->
     @haki.setGenerator 'test',
-      actions: [{ type: 'add', destFile: 'a.txt', templateFile: 'b.txt' }]
+      actions: [{ type: 'add', destPath: 'a.txt', srcPath: 'b.txt' }]
 
     @haki.runGenerator('test').then (result) ->
-      expect(result.failures[0].error).toEqual "Template 'b.txt' does not exists"
+      expect(result.failures[0].error).toEqual new Error("File 'b.txt' does not exists")
       done()
 
   it 'will report missing sources', (done) ->
     @haki.setGenerator 'test',
-      actions: [{ type: 'copy', srcFile: 'a.txt', destFile: 'b.txt' }]
+      actions: [{ type: 'copy', srcPath: 'a.txt', destPath: 'b.txt' }]
 
     @haki.runGenerator('test').then (result) ->
-      expect(result.failures[0].error).toEqual "File 'a.txt' does not exists"
+      expect(result.failures[0].error).toEqual new Error("File 'a.txt' does not exists")
       done()
 
   it 'will report unsupported actions', (done) ->
     @haki.setGenerator 'test',
-      actions: [{ type: 'dunno', destFile: 'a.txt' }]
+      actions: [{ type: 'dunno', destPath: 'a.txt' }]
 
     @haki.runGenerator('test').then (result) ->
-      expect(result.failures[0].error).toEqual "Unsupported 'dunno' action"
+      expect(result.failures[0].error).toEqual new Error("Unsupported 'dunno' action")
       done()
 
   it 'will stop when abortOnFail is true', (done) ->
     @haki.setGenerator 'test',
-      actions: [{ abortOnFail: true, destFile: 'a.txt' }]
+      actions: [{ abortOnFail: true, destPath: 'a.txt' }]
 
-    @haki.runGenerator('test').then (result) ->
-      expect(result.error.message).toContain "Unsupported 'undefined' action"
+    @haki.runGenerator('test').catch (error) ->
+      expect(error).toEqual new Error("Unsupported 'undefined' action")
       done()
