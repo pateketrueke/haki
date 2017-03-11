@@ -62,12 +62,12 @@ describe 'Haki', ->
     sendLine '42\n'
 
   it 'will fail on missing generators', ->
-    expect(=> haki.chooseGeneratorList()).toThrow()
+    expect(-> haki.chooseGeneratorList()).toThrow()
 
   it 'can display generators', (done) ->
     temp = null
 
-    expect(=> haki.setGenerator()).toThrow()
+    expect(-> haki.setGenerator()).toThrow()
 
     haki.setGenerator 'test',
       actions: ->
@@ -211,16 +211,10 @@ describe 'Haki', ->
         { type: 'copy', destPath: 'copy.txt', srcPath: 'templates/test.txt' }
       ]
     ).catch (error) ->
-      expect(error.message).toContain "Replace 'copy.txt'"
+      expect(error.message).toMatch /File '.*test\.txt' cannot be copied/
       done()
 
-  it 'will report missing templates', (done) ->
-    haki.runGenerator(
-      abortOnFail: true
-      actions: [{ type: 'add', destPath: 'a.txt', srcPath: 'b.txt' }]
-    ).catch (error) ->
-      expect(error.message).toContain "Replace 'a.txt"
-      done()
+    sendLine 'x\n'
 
   it 'will report missing sources', (done) ->
     haki.runGenerator(
@@ -230,6 +224,8 @@ describe 'Haki', ->
       expect(error.message).toContain "Source 'a.txt' does not exists"
       done()
 
+    sendLine 'x\n'
+
   it 'will report unsupported actions', (done) ->
     haki.runGenerator(
       abortOnFail: true
@@ -238,9 +234,13 @@ describe 'Haki', ->
       expect(error.message).toContain "Unsupported 'dunno' action"
       done()
 
+    sendLine 'x\n'
+
   it 'will report when abortOnFail is true', (done) ->
     haki.runGenerator(
       actions: [{ abortOnFail: true, destPath: 'a.txt' }]
     ).then (result) ->
       expect(result.failures).toEqual [new Error("Unsupported 'undefined' action")]
       done()
+
+    sendLine 'x\n'
