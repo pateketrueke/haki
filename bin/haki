@@ -6,7 +6,13 @@
 
 /* eslint-disable global-require */
 
-const $ = require('wargs')(process.argv.slice(2));
+const $ = require('wargs')(process.argv.slice(2), {
+  aliases: {
+    v: 'version',
+    d: 'debug',
+    h: 'help',
+  },
+});
 
 const thisPkg = require('../package.json');
 
@@ -30,7 +36,8 @@ function showHelp(tasks) {
   /* istanbul ignore else */
   if (tasks.length) {
     tasks.forEach(params => {
-      _.echo(`    ${_bin} ${padding(params.name, 20)}  # ${params.task.description || ''}\n`);
+      _.echo(`    ${_bin} ${padding(params.name, 20)}`,
+        `  # ${params.task.description || ''}\n`);
     });
   }
 }
