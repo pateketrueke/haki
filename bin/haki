@@ -15,48 +15,67 @@ const findup = require('findup-sync');
 const chalk = require('chalk');
 const path = require('path');
 
-let _task = $._.shift();
+let _task = $._.shift() || 'default';
 
 const _ = require('./lib/util');
 const _bin = path.basename(thisPkg.bin);
 
-const _tasks = [
-  `  Other actions:
-    ${_bin} g|add|generate [...]
-    ${_bin} s|up|start [...]
-    ${_bin} repl`,
-  `  HALP
-    -x, --eXtra         # OK`,
-];
-
-function showTask(params) {
-  return params;
+function padding(value, max) {
+  return `${value}${new Array(value.length + max).join(' ')}`.substr(0, max);
 }
 
-function showHelp() {
-  _.echo(`  Usage:
-    ${_bin} init [...]
-__TASKS__
-`.replace('__TASKS__', _tasks.length
-  ? `\n${_tasks.map(showTask).join('\n\n')}`
-  : '\n'));
+function showHelp(tasks) {
+  _.echo(`  Usage:\n    ${_bin} COMMAND [...]\n`);
+
+  /* istanbul ignore else */
+  if (tasks.length) {
+    tasks.forEach(params => {
+      _.echo(`    ${_bin} ${padding(params.name, 20)}  # ${params.task.description || ''}\n`);
+    });
+  }
 }
+
+const Haki = require('../lib');
+const haki = new Haki($.flags);
 
 try {
-  const Hakifile = findup('Hakifile.js', { nocase: true });
-  console.log('>', Hakifile, _task, $);
+  const Hakifile = findup('Hakifile.*', { nocase: true });
+
+  /* istanbul ignore else */
+  if (Hakifile) {
+    try {
+      require(Hakifile)(haki);
+    } catch (e) {
+      _.echo(chalk.red(`Wrong '${Hakifile}': ${e.message}`), '\n');
+      _.die(1);
+    }
+  }
 } catch (e) {
   _.echo(chalk.red(($.flags.debug && cleanStack(e.stack)) || e.message), '\n');
   _.die(1);
 }
 
+/* istanbul ignore else */
 if ($.flags.version) {
   _.echo(chalk.green(`${thisPkg.name} v${thisPkg.version}`), '\n');
   _.die();
 }
 
+/* istanbul ignore else */
 if ($.flags.help) {
-  showHelp();
+  showHelp(haki.getGeneratorList());
   _.die();
 }
+
+if (haki.hasGenerator(_task)) {
+  haki.runGenerator(_task, _.merge({}, $.data, $.params))
+    .catch(e => {
+      _.echo(chalk.red(($.flags.debug && cleanStack(e.stack)) || e.message), '\n');
+      _.die(1);
+    });
+} else {
+  _.echo(chalk.red(`Missing '${_task}' generator`), '\n');
+  _.die(1);
+}
+
 process.on('SIGINT', () => process.exit());
