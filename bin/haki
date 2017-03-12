@@ -17,9 +17,10 @@ const $ = require('wargs')(process.argv.slice(2), {
 const thisPkg = require('../package.json');
 
 const cleanStack = require('clean-stack');
-const findup = require('findup-sync');
 const chalk = require('chalk');
 const path = require('path');
+
+const CLR = '\x1b[K';
 
 let _task = $._.shift() || 'default';
 
@@ -42,30 +43,38 @@ function showHelp(tasks) {
   }
 }
 
+/* istanbul ignore else */
+if ($.flags.version) {
+  _.echo(chalk.yellow(`${thisPkg.name} v${thisPkg.version}`), '\n');
+  _.die();
+}
+
+_.echo(chalk.gray('↺ Finding Hakifile ...\r'));
+
 const Haki = require('../lib');
 const haki = new Haki($.flags);
 
 try {
+  const findup = require('findup-sync');
   const Hakifile = findup('Hakifile.*', { nocase: true });
 
   /* istanbul ignore else */
   if (Hakifile) {
+    _.echo(chalk.green('✔ Hakifile found', CLR, '\n'));
+
     try {
       require(Hakifile)(haki);
     } catch (e) {
-      _.echo(chalk.red(`Wrong '${Hakifile}': ${e.message}`), '\n');
+      _.echo(chalk.red(`✗ Wrong '${Hakifile}': ${e.message}`), '\n');
       _.die(1);
     }
+  } else {
+    _.echo(chalk.red('✗ Hakifile not found', CLR, '\n'));
+    _.die(1);
   }
 } catch (e) {
-  _.echo(chalk.red(($.flags.debug && cleanStack(e.stack)) || e.message), '\n');
+  _.echo(chalk.red(`✗ ${($.flags.debug && cleanStack(e.stack)) || e.message}`), CLR, '\n');
   _.die(1);
-}
-
-/* istanbul ignore else */
-if ($.flags.version) {
-  _.echo(chalk.green(`${thisPkg.name} v${thisPkg.version}`), '\n');
-  _.die();
 }
 
 /* istanbul ignore else */
@@ -74,6 +83,8 @@ if ($.flags.help) {
   _.die();
 }
 
+_.echo(chalk.gray(`Haki v${thisPkg.version} (${_task})\n`));
+
 if (haki.hasGenerator(_task)) {
   haki.runGenerator(_task, _.merge({}, $.data, $.params))
     .catch(e => {
@@ -81,7 +92,7 @@ if (haki.hasGenerator(_task)) {
       _.die(1);
     });
 } else {
-  _.echo(chalk.red(`Missing '${_task}' generator`), '\n');
+  _.echo(chalk.red(`✗ Missing '${_task}' generator`), CLR, '\n');
   _.die(1);
 }
 
