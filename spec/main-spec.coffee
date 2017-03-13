@@ -1,11 +1,10 @@
+expect = require('expect')
 rimraf = require('rimraf')
 ttys = require('ttys')
 path = require('path')
 fs = require('fs')
 
 Haki = require('..')
-
-jasmine.DEFAULT_TIMEOUT_INTERVAL = 45000
 
 fixturesPath = path.join(__dirname, 'fixtures')
 generatedPath = path.join(__dirname, '..', 'generated')
@@ -18,7 +17,13 @@ sendLine = (line) ->
     ttys.stdin.emit('data', line)
 
 # hide tty-output
-ttys.stdout.write = ->
+tty_write = ttys.stdout.write
+
+tty_off = ->
+  ttys.stdout.write = ->
+
+tty_on = ->
+  ttys.stdout.write = tty_write
 
 # TODO:
 log = null
@@ -34,6 +39,16 @@ describe 'Haki', ->
       stdin: ttys.stdin
       stdout: ttys.stdout
       logger: (line) -> log.push(line)
+    # safe wrapper
+    haki._runGenerator = (args...) ->
+      tty_off()
+      haki.runGenerator(args...)
+        .catch (error) ->
+          tty_on()
+          throw error
+        .then (result) ->
+          tty_on()
+          result
 
   it 'should handle errors', (done) ->
     pass = []
@@ -54,7 +69,7 @@ describe 'Haki', ->
           _value
       }]
 
-    haki.runGenerator('test').then (result) ->
+    haki._runGenerator('test').then (result) ->
       expect(pass).toEqual [
         ['4', 'FAIL'] # 4
         ['42', true] # 2
@@ -78,17 +93,21 @@ describe 'Haki', ->
         temp = 42
         []
 
+    tty_off()
     haki.chooseGeneratorList().then ->
       expect(temp).toEqual 42
+      tty_on()
       done()
 
     sendLine '\n'
 
   it 'can prompt manually', (done) ->
+    tty_off()
     haki.prompt
       name: 'input'
     .then (value) ->
       expect(value).toEqual 'OK'
+      tty_on()
       done()
 
     sendLine 'OK\n'
@@ -136,53 +155,48 @@ describe 'Haki', ->
       ]
       actions: -> [(v) -> data = v]
 
-    haki.runGenerator('test', { x: 'y', m: 'n' }).then (result) ->
+    haki._runGenerator('test', { x: 'y', m: 'n' }).then (result) ->
       expect(data).toEqual { x: 'y', a: 'b', m: 'n' }
       done()
 
     sendLine 'b\n'
 
-  it 'will validate actions', (done) ->
+  it 'will validate actions', ->
     haki.runGenerator(
       abortOnFail: true
       actions: [{}]
     ).catch (error) ->
       expect(error.message).toContain "Unsupported 'undefined' action"
-      done()
 
-  it 'will fail when destPath is missing', (done) ->
+  it 'will fail when destPath is missing', ->
     haki.runGenerator(
       abortOnFail: true
       actions: [{ type: 'add' }]
     ).catch (error) ->
       expect(error.message).toContain "Invalid destPath, given 'undefined'"
-      done()
 
-  it 'will fail when srcPath is missing', (done) ->
+  it 'will fail when srcPath is missing', ->
     haki.runGenerator(
       abortOnFail: true
       actions: [{ type: 'copy', destPath: 'a.txt' }]
     ).catch (error) ->
       expect(error.message).toContain "Invalid srcPath, given 'undefined'"
-      done()
 
-  it 'will fail when pattern is missing', (done) ->
+  it 'will fail when pattern is missing', ->
     haki.runGenerator(
       abortOnFail: true
       actions: [{ type: 'modify', destPath: 'a.txt' }]
     ).catch (error) ->
       expect(error.message).toContain "Invalid pattern, given 'undefined'"
-      done()
 
-  it 'will fail on unsupported prompts', (done) ->
+  it 'will fail on unsupported prompts', ->
     haki.runGenerator(
       abortOnFail: true
       prompts: [{ type: 'x' }]
     ).catch (error) ->
       expect(error.message).toContain "Unsupported 'x' prompt"
-      done()
 
-  it 'will fail on broken actions', (done) ->
+  it 'will fail on broken actions', ->
     haki.runGenerator(
       abortOnFail: true
       actions: [
@@ -190,10 +204,9 @@ describe 'Haki', ->
       ]
     ).catch (error) ->
       expect(error.message).toContain 'FAIL'
-      done()
 
   it 'will fail on broken prompts', (done) ->
-    haki.runGenerator(
+    haki._runGenerator(
       abortOnFail: true
       prompts: [{
         name: 'x'
@@ -207,7 +220,7 @@ describe 'Haki', ->
     sendLine 'y\n'
 
   it 'will report on copy duplicates', (done) ->
-    haki.runGenerator(
+    haki._runGenerator(
       abortOnFail: true
       basePath: fixturesPath
       actions: [
@@ -250,30 +263,27 @@ describe 'Haki', ->
 
     sendLine 'x\n'
 
-  it 'will report missing commands', (done) ->
+  it 'will report missing commands', ->
     haki.runGenerator(
       abortOnFail: true
       actions: [{ type: 'exec' }]
     ).catch (error) ->
       expect(error.message).toContain "Invalid command, given 'undefined'"
-      done()
 
-  it 'will execute commands', (done) ->
+  it 'will execute commands', ->
     haki.runGenerator(
       actions: [{ type: 'exec', command: 'echo ok' }]
     ).then (result) ->
       expect(result.changes[0].stdOut).toEqual 'ok\n'
-      done()
 
-  it 'will report errors on executing commands', (done) ->
+  it 'will report errors on executing commands', ->
     haki.runGenerator(
       abortOnFail: true
       actions: [{ type: 'exec', command: 'not_defined_cmd' }]
     ).catch (error) ->
       expect(error.message).toMatch /command not found/
-      done()
 
-  it 'will install all dependencies', (done) ->
+  it 'will install all dependencies', ->
     haki.runGenerator(
       actions: [
         { type: 'add', destPath: 'package.json', template: '''
@@ -290,9 +300,8 @@ describe 'Haki', ->
       expect(readFile('node_modules/noop/package.json')).toContain 'noop@'
       expect(result.changes[1]).toEqual { type: 'install' }
       rimraf.sync path.join(fixturesPath, 'node_modules')
-      done()
 
-  it 'will install given dependencies', (done) ->
+  it 'will install given dependencies', ->
     haki.runGenerator(
       actions: [
         { type: 'add', destPath: 'package.json', template: '{ "name": "example" }' }
@@ -302,10 +311,9 @@ describe 'Haki', ->
       expect(readFile('node_modules/noop/package.json')).toContain 'noop@'
       expect(result.changes[1]).toEqual { type: 'install', dependencies: ['noop'] }
       rimraf.sync path.join(fixturesPath, 'node_modules')
-      done()
 
   it 'will modify given files', (done) ->
-    haki.runGenerator(
+    haki._runGenerator(
       actions: [
         { type: 'add', destPath: 'example.txt', template: 'foo' }
         { type: 'modify', destPath: 'example.txt', pattern: /$/, template: '$&\nbar' }
@@ -320,7 +328,7 @@ describe 'Haki', ->
 
     sendLine 'y\n'
 
-  it 'will clone given repos', (done) ->
+  it 'will clone given repos', ->
     haki.runGenerator(
       actions: [
         { type: 'clone', destPath: '.', gitUrl: 'githubtraining/example-markdown' }
@@ -328,9 +336,8 @@ describe 'Haki', ->
     ).then (result) ->
       expect(readFile('README.md')).toContain 'sample-markdown'
       expect(result.changes).toEqual [{ type: 'clone', repository: 'githubtraining/example-markdown' }]
-      done()
 
-  it 'will clean given sources', (done) ->
+  it 'will clean given sources', ->
     haki.runGenerator(
       actions: [
         { type: 'add', destPath: 'rm_dir/a.txt', template: 'x' }
@@ -340,4 +347,3 @@ describe 'Haki', ->
     ).then (result) ->
       expect(-> readFile('rm_dir/a.txt')).toThrow()
       expect(readFile('rm_dir/b.txt')).toEqual 'y'
-      done()

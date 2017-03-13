@@ -6,11 +6,14 @@
   "description": "Super fast generator!",
   "author": "Alvaro Cabrera <pateketrueke@gmail.com>",
   "license": "MIT",
+  "config": {
+    "mocha": "--compilers coffee:coffeescript/register --recursive ./spec --timeout 45000"
+  },
   "scripts": {
-    "dev": "jasmine-node spec --coffee --verbose --autoTest --watchFolders lib",
+    "dev": "yarn spec -- -w",
+    "spec": "_mocha $npm_package_config_mocha",
+    "cover": "istanbul cover _mocha -- $npm_package_config_mocha",
     "lint": "eslint lib && coffeelint spec",
-    "spec": "jasmine-node spec --coffee --noStackTrace --captureExceptions",
-    "cover": "istanbul cover --root lib --x '**/spec/**' -- yarn spec",
     "cover:up": "codecov --file=coverage/lcov.info --disable=gcov -e TRAVIS_NODE_VERSION",
     "test": "yarn lint && yarn spec"
   },
@@ -38,9 +41,11 @@
   "devDependencies": {
     "codecov": "^1.0.1",
     "coffeelint": "^1.16.0",
+    "coffeescript": "^1.12.4",
     "eslint": "^3.14.0",
+    "expect": "^1.20.2",
     "istanbul": "^0.4.5",
-    "jasmine-node": "2.0.0-beta4",
+    "mocha": "^3.2.0",
     "ttys": "^0.0.3"
   }
 }
