@@ -67,6 +67,7 @@ const home = win
 const CONFIG = {};
 
 let depth = 20;
+let count = 0;
 let pwd = cwd;
 
 function load(filepath) {
@@ -80,6 +81,8 @@ function load(filepath) {
         /* istanbul ignore else */
         if (Hakifile.length) {
           require(path.join(filepath, Hakifile[0]))(haki);
+
+          count += 1;
         }
       } else {
         _.merge(CONFIG, JSON.parse(fs.readFileSync(filepath).toString()));
@@ -110,13 +113,15 @@ load(path.join(home, `.${thisPkg.name}rc`));
 load(path.join(etc, '.config', thisPkg.name));
 load(path.join(etc, `.${thisPkg.name}rc`));
 
+_.echo(chalk.green(`✔ ${count} Hakifile${count === 1 ? '' : 's'} found`), CLR, '\n');
+
 /* istanbul ignore else */
 if ($.flags.help) {
   showHelp(haki.getGeneratorList());
   _.die();
 }
 
-_.echo(chalk.gray(`Haki v${thisPkg.version} (${_task})\n`));
+_.echo(chalk.gray(`Haki v${thisPkg.version} (${_task})`), CLR, '\n');
 
 if (haki.hasGenerator(_task)) {
   haki.runGenerator(_task, _.merge({}, $.data, $.params, CONFIG))
