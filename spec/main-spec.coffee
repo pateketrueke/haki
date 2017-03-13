@@ -168,24 +168,24 @@ describe 'Haki', ->
     ).catch (error) ->
       expect(error.message).toContain "Unsupported 'undefined' action"
 
-  it 'will fail when destPath is missing', ->
+  it 'will fail when dest is missing', ->
     haki.runGenerator(
       abortOnFail: true
       actions: [{ type: 'add' }]
     ).catch (error) ->
-      expect(error.message).toContain "Invalid destPath, given 'undefined'"
+      expect(error.message).toContain "Invalid dest, given 'undefined'"
 
-  it 'will fail when srcPath is missing', ->
+  it 'will fail when src is missing', ->
     haki.runGenerator(
       abortOnFail: true
-      actions: [{ type: 'copy', destPath: 'a.txt' }]
+      actions: [{ type: 'copy', dest: 'a.txt' }]
     ).catch (error) ->
-      expect(error.message).toContain "Invalid srcPath, given 'undefined'"
+      expect(error.message).toContain "Invalid src, given 'undefined'"
 
   it 'will fail when pattern is missing', ->
     haki.runGenerator(
       abortOnFail: true
-      actions: [{ type: 'modify', destPath: 'a.txt' }]
+      actions: [{ type: 'modify', dest: 'a.txt' }]
     ).catch (error) ->
       expect(error.message).toContain "Invalid pattern, given 'undefined'"
 
@@ -224,8 +224,8 @@ describe 'Haki', ->
       abortOnFail: true
       basePath: fixturesPath
       actions: [
-        { type: 'add', destPath: 'copy.txt', srcPath: 'templates/sample.txt' }
-        { type: 'copy', destPath: 'copy.txt', srcPath: 'templates/test.txt' }
+        { type: 'add', dest: 'copy.txt', src: 'templates/sample.txt' }
+        { type: 'copy', dest: 'copy.txt', src: 'templates/test.txt' }
       ]
     ).catch (error) ->
       expect(error.message).toMatch /File '.*test\.txt' cannot be copied/
@@ -236,7 +236,7 @@ describe 'Haki', ->
   it 'will report missing sources', (done) ->
     haki.runGenerator(
       abortOnFail: true
-      actions: [{ type: 'copy', srcPath: 'a.txt', destPath: 'b.txt' }]
+      actions: [{ type: 'copy', src: 'a.txt', dest: 'b.txt' }]
     ).catch (error) ->
       expect(error.message).toContain "Source 'a.txt' does not exists"
       done()
@@ -246,7 +246,7 @@ describe 'Haki', ->
   it 'will report unsupported actions', (done) ->
     haki.runGenerator(
       abortOnFail: true
-      actions: [{ type: 'dunno', destPath: 'a.txt' }]
+      actions: [{ type: 'dunno', dest: 'a.txt' }]
     ).catch (error) ->
       expect(error.message).toContain "Unsupported 'dunno' action"
       done()
@@ -255,7 +255,7 @@ describe 'Haki', ->
 
   it 'will report when abortOnFail is true', (done) ->
     haki.runGenerator(
-      actions: [{ abortOnFail: true, destPath: 'a.txt' }]
+      actions: [{ abortOnFail: true, dest: 'a.txt' }]
     ).then (result) ->
       expect(result.error).toEqual new Error("Unsupported 'undefined' action")
       expect(result.failures).toEqual [new Error("Unsupported 'undefined' action")]
@@ -286,7 +286,7 @@ describe 'Haki', ->
   it 'will install all dependencies', ->
     haki.runGenerator(
       actions: [
-        { type: 'add', destPath: 'package.json', template: '''
+        { type: 'add', dest: 'package.json', template: '''
           {
             "name": "example",
             "dependencies": {
@@ -294,7 +294,7 @@ describe 'Haki', ->
             }
           }
         ''' }
-        { type: 'install', destPath: '.' }
+        { type: 'install', dest: '.' }
       ]
     ).then (result) ->
       expect(readFile('node_modules/noop/package.json')).toContain 'noop@'
@@ -304,8 +304,8 @@ describe 'Haki', ->
   it 'will install given dependencies', ->
     haki.runGenerator(
       actions: [
-        { type: 'add', destPath: 'package.json', template: '{ "name": "example" }' }
-        { type: 'install', dependencies: ['noop'], destPath: '.' }
+        { type: 'add', dest: 'package.json', template: '{ "name": "example" }' }
+        { type: 'install', dependencies: ['noop'], dest: '.' }
       ]
     ).then (result) ->
       expect(readFile('node_modules/noop/package.json')).toContain 'noop@'
@@ -315,14 +315,14 @@ describe 'Haki', ->
   it 'will modify given files', (done) ->
     haki._runGenerator(
       actions: [
-        { type: 'add', destPath: 'example.txt', template: 'foo' }
-        { type: 'modify', destPath: 'example.txt', pattern: /$/, template: '$&\nbar' }
+        { type: 'add', dest: 'example.txt', template: 'foo' }
+        { type: 'modify', dest: 'example.txt', pattern: /$/, template: '$&\nbar' }
       ]
     ).then (result) ->
       expect(readFile('example.txt')).toEqual 'foo\nbar'
       expect(result.changes).toEqual [
-        { type: 'add', destPath: 'example.txt' }
-        { type: 'modify', destPath: 'example.txt' }
+       { type: 'add', dest: 'example.txt' }
+       { type: 'modify', dest: 'example.txt' }
       ]
       done()
 
@@ -331,7 +331,7 @@ describe 'Haki', ->
   it 'will clone given repos', ->
     haki.runGenerator(
       actions: [
-        { type: 'clone', destPath: '.', gitUrl: 'githubtraining/example-markdown' }
+        { type: 'clone', dest: '.', gitUrl: 'githubtraining/example-markdown' }
       ]
     ).then (result) ->
       expect(readFile('README.md')).toContain 'sample-markdown'
@@ -340,9 +340,9 @@ describe 'Haki', ->
   it 'will clean given sources', ->
     haki.runGenerator(
       actions: [
-        { type: 'add', destPath: 'rm_dir/a.txt', template: 'x' }
-        { type: 'add', destPath: 'rm_dir/b.txt', template: 'y' }
-        { type: 'clean', destPath: 'rm_dir/a.txt' }
+        { type: 'add', dest: 'rm_dir/a.txt', template: 'x' }
+        { type: 'add', dest: 'rm_dir/b.txt', template: 'y' }
+        { type: 'clean', dest: 'rm_dir/a.txt' }
       ]
     ).then (result) ->
       expect(-> readFile('rm_dir/a.txt')).toThrow()
