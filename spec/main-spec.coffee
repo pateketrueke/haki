@@ -5,6 +5,8 @@ fs = require('fs')
 
 Haki = require('..')
 
+jasmine.DEFAULT_TIMEOUT_INTERVAL = 45000
+
 fixturesPath = path.join(__dirname, 'fixtures/generated')
 
 readFile = (file) ->
@@ -26,6 +28,7 @@ describe 'Haki', ->
     rimraf.sync fixturesPath
     log = []
     haki = new Haki
+      quiet: true
       cwd: fixturesPath
       stdin: ttys.stdin
       stdout: ttys.stdout
@@ -240,7 +243,100 @@ describe 'Haki', ->
     haki.runGenerator(
       actions: [{ abortOnFail: true, destPath: 'a.txt' }]
     ).then (result) ->
+      expect(result.error).toEqual new Error("Unsupported 'undefined' action")
       expect(result.failures).toEqual [new Error("Unsupported 'undefined' action")]
       done()
 
     sendLine 'x\n'
+
+  it 'will report missing commands', (done) ->
+    haki.runGenerator(
+      abortOnFail: true
+      actions: [{ type: 'exec' }]
+    ).catch (error) ->
+      expect(error.message).toContain "Invalid command, given 'undefined'"
+      done()
+
+  it 'will execute commands', (done) ->
+    haki.runGenerator(
+      actions: [{ type: 'exec', command: 'echo ok' }]
+    ).then (result) ->
+      expect(result.changes[0].stdOut).toEqual 'ok\n'
+      done()
+
+  it 'will report errors on executing commands', (done) ->
+    haki.runGenerator(
+      abortOnFail: true
+      actions: [{ type: 'exec', command: 'not_defined_cmd' }]
+    ).catch (error) ->
+      expect(error.message).toMatch /command not found/
+      done()
+
+  it 'will install all dependencies', (done) ->
+    haki.runGenerator(
+      actions: [
+        { type: 'add', destPath: 'package.json', template: '''
+          {
+            "name": "example",
+            "dependencies": {
+              "noop": "*"
+            }
+          }
+        ''' }
+        { type: 'install', destPath: '.' }
+      ]
+    ).then (result) ->
+      expect(readFile('node_modules/noop/package.json')).toContain 'noop@'
+      expect(result.changes[1]).toEqual { type: 'install' }
+      rimraf.sync path.join(fixturesPath, 'node_modules')
+      done()
+
+  it 'will install given dependencies', (done) ->
+    haki.runGenerator(
+      actions: [
+        { type: 'add', destPath: 'package.json', template: '{ "name": "example" }' }
+        { type: 'install', dependencies: ['noop'], destPath: '.' }
+      ]
+    ).then (result) ->
+      expect(readFile('node_modules/noop/package.json')).toContain 'noop@'
+      expect(result.changes[1]).toEqual { type: 'install', dependencies: ['noop'] }
+      rimraf.sync path.join(fixturesPath, 'node_modules')
+      done()
+
+  it 'will modify given files', (done) ->
+    haki.runGenerator(
+      actions: [
+        { type: 'add', destPath: 'example.txt', template: 'foo' }
+        { type: 'modify', destPath: 'example.txt', pattern: /$/, template: '$&\nbar' }
+      ]
+    ).then (result) ->
+      expect(readFile('example.txt')).toEqual 'foo\nbar'
+      expect(result.changes).toEqual [
+        { type: 'add', destPath: 'example.txt' }
+        { type: 'modify', destPath: 'example.txt' }
+      ]
+      done()
+
+    sendLine 'y\n'
+
+  it 'will clone given repos', (done) ->
+    haki.runGenerator(
+      actions: [
+        { type: 'clone', destPath: '.', gitUrl: 'githubtraining/example-markdown' }
+      ]
+    ).then (result) ->
+      expect(readFile('README.md')).toContain 'sample-markdown'
+      expect(result.changes).toEqual [{ type: 'clone', repository: 'githubtraining/example-markdown' }]
+      done()
+
+  it 'will clean given sources', (done) ->
+    haki.runGenerator(
+      actions: [
+        { type: 'add', destPath: 'rm_dir/a.txt', template: 'x' }
+        { type: 'add', destPath: 'rm_dir/b.txt', template: 'y' }
+        { type: 'clean', destPath: 'rm_dir/a.txt' }
+      ]
+    ).then (result) ->
+      expect(-> readFile('rm_dir/a.txt')).toThrow()
+      expect(readFile('rm_dir/b.txt')).toEqual 'y'
+      done()
