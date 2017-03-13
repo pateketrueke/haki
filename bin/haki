@@ -8,8 +8,10 @@
 
 const $ = require('wargs')(process.argv.slice(2), {
   aliases: {
+    f: 'force',
     v: 'version',
     d: 'debug',
+    q: 'quiet',
     h: 'help',
   },
 });
@@ -42,6 +44,15 @@ function showHelp(tasks) {
         `  # ${params.task.description || ''}\n`);
     });
   }
+
+  _.echo(`
+  Options:
+    -f, [--force]        # Overwrite files that already exist
+    -v, [--version]      # Print version and quit
+    -d, [--debug]        # Print stack on error
+    -q, [--quiet]        # Supress status output
+    -h, [--help]         # Show this help message
+`);
 }
 
 /* istanbul ignore else */
@@ -54,6 +65,9 @@ _.echo(chalk.gray('↺ Finding Hakifile(s) ...\r'));
 
 const Haki = require('../lib');
 const haki = new Haki($.flags);
+
+// built-in generators
+require('./Hakifile')(haki);
 
 // partial impl from `rc`
 const win = process.platform === 'win32';
