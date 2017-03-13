@@ -67,7 +67,6 @@ const home = win
 const CONFIG = {};
 
 let depth = 20;
-let found = 0;
 let pwd = cwd;
 
 function load(filepath) {
@@ -81,8 +80,6 @@ function load(filepath) {
         /* istanbul ignore else */
         if (Hakifile.length) {
           require(path.join(filepath, Hakifile[0]))(haki);
-
-          found += 1;
         }
       } else {
         _.merge(CONFIG, JSON.parse(fs.readFileSync(filepath).toString()));

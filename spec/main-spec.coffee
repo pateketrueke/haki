@@ -7,10 +7,11 @@ Haki = require('..')
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 45000
 
-fixturesPath = path.join(__dirname, 'fixtures/generated')
+fixturesPath = path.join(__dirname, 'fixtures')
+generatedPath = path.join(__dirname, '..', 'generated')
 
 readFile = (file) ->
-  fs.readFileSync(path.join(fixturesPath, file)).toString()
+  fs.readFileSync(path.join(generatedPath, file)).toString()
 
 sendLine = (line) ->
   setImmediate ->
@@ -25,11 +26,11 @@ haki = null
 
 describe 'Haki', ->
   beforeEach ->
-    rimraf.sync fixturesPath
+    rimraf.sync generatedPath
     log = []
     haki = new Haki
       quiet: true
-      cwd: fixturesPath
+      cwd: generatedPath
       stdin: ttys.stdin
       stdout: ttys.stdout
       logger: (line) -> log.push(line)
@@ -94,17 +95,17 @@ describe 'Haki', ->
 
   it 'can load files', ->
     haki.load require.resolve('./fixtures/Hakifile')
-    haki.load '../Hakifile.js'
+    haki.load '../spec/fixtures/Hakifile.js'
 
     test = haki.getGeneratorList()[0]
 
     expect(test.name).toEqual 'other'
-    expect(test.task.basePath).toEqual path.join(__dirname, 'fixtures')
+    expect(test.task.basePath).toEqual fixturesPath
     expect(test.task.description).toEqual 'Another generator test'
 
   it 'will export getPath()', ->
-    expect(haki.getPath()).toEqual fixturesPath
-    expect(haki.getPath('a/b.c')).toEqual path.join(fixturesPath, 'a/b.c')
+    expect(haki.getPath()).toEqual generatedPath
+    expect(haki.getPath('a/b.c')).toEqual path.join(generatedPath, 'a/b.c')
 
   it 'will export addHelper()', ->
     pkg = require('../package.json')
@@ -208,7 +209,7 @@ describe 'Haki', ->
   it 'will report on copy duplicates', (done) ->
     haki.runGenerator(
       abortOnFail: true
-      basePath: path.join(__dirname, 'fixtures')
+      basePath: fixturesPath
       actions: [
         { type: 'add', destPath: 'copy.txt', srcPath: 'templates/sample.txt' }
         { type: 'copy', destPath: 'copy.txt', srcPath: 'templates/test.txt' }
