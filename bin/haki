@@ -19,6 +19,7 @@ const thisPkg = require('../package.json');
 const cleanStack = require('clean-stack');
 const chalk = require('chalk');
 const path = require('path');
+const fs = require('fs');
 
 const CLR = '\x1b[K';
 
@@ -49,33 +50,68 @@ if ($.flags.version) {
   _.die();
 }
 
-_.echo(chalk.gray('↺ Finding Hakifile ...\r'));
+_.echo(chalk.gray('↺ Finding Hakifile(s) ...\r'));
 
 const Haki = require('../lib');
 const haki = new Haki($.flags);
 
-try {
-  const findup = require('findup-sync');
-  const Hakifile = findup('Hakifile.*', { nocase: true });
+// partial impl from `rc`
+const win = process.platform === 'win32';
+const cwd = process.cwd();
+const etc = '/etc';
 
-  /* istanbul ignore else */
-  if (Hakifile) {
-    _.echo(chalk.green('✔ Hakifile found', CLR, '\n'));
+const home = win
+  ? process.env.USERPROFILE
+  : process.env.HOME;
 
-    try {
-      require(Hakifile)(haki);
-    } catch (e) {
-      _.echo(chalk.red(`✗ Wrong '${Hakifile}': ${e.message}`), '\n');
-      _.die(1);
+const CONFIG = {};
+
+let depth = 20;
+let found = 0;
+let pwd = cwd;
+
+function load(filepath) {
+  try {
+    /* istanbul ignore else */
+    if (fs.existsSync(filepath)) {
+      if (fs.statSync(filepath).isDirectory()) {
+        const Hakifile = fs.readdirSync(filepath)
+          .filter(file => file.indexOf('Hakifile') > -1);
+
+        /* istanbul ignore else */
+        if (Hakifile.length) {
+          require(path.join(filepath, Hakifile[0]))(haki);
+
+          found += 1;
+        }
+      } else {
+        _.merge(CONFIG, JSON.parse(fs.readFileSync(filepath).toString()));
+      }
     }
-  } else {
-    _.echo(chalk.red('✗ Hakifile not found', CLR, '\n'));
+  } catch (e) {
+    _.echo(chalk.red(`✗ Wrong '${filepath}': ${($.flags.debug && cleanStack(e.stack)) || e.message}`), CLR, '\n');
     _.die(1);
   }
-} catch (e) {
-  _.echo(chalk.red(`✗ ${($.flags.debug && cleanStack(e.stack)) || e.message}`), CLR, '\n');
-  _.die(1);
 }
+
+while (depth--) {
+  load(path.join(pwd, '.config', thisPkg.name));
+  load(path.join(pwd, `.${thisPkg.name}rc`));
+  load(pwd);
+
+  pwd = path.dirname(pwd);
+
+  /* istanbul ignore else */
+  if (pwd === '/' || pwd === home) {
+    break;
+  }
+}
+
+load(path.join(home, '.config', thisPkg.name));
+load(path.join(home, `.${thisPkg.name}rc`));
+
+load(path.join(etc, '.config', thisPkg.name));
+load(path.join(etc, `.${thisPkg.name}rc`));
 
 /* istanbul ignore else */
 if ($.flags.help) {
@@ -86,7 +122,7 @@ if ($.flags.help) {
 _.echo(chalk.gray(`Haki v${thisPkg.version} (${_task})\n`));
 
 if (haki.hasGenerator(_task)) {
-  haki.runGenerator(_task, _.merge({}, $.data, $.params))
+  haki.runGenerator(_task, _.merge({}, $.data, $.params, CONFIG))
     .catch(e => {
       _.echo(chalk.red(($.flags.debug && cleanStack(e.stack)) || e.message), '\n');
       _.die(1);
