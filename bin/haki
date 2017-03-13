@@ -6,7 +6,16 @@
 
 /* eslint-disable global-require */
 
-const $ = require('wargs')(process.argv.slice(2), {
+const argv = process.argv.slice(2);
+
+let _task = 'default';
+
+/* istanbul ignore else */
+if (/^(?!-)[\w:-]+$/.test(argv[0])) {
+  _task = argv.shift() || _task;
+}
+
+const $ = require('wargs')(argv, {
   aliases: {
     f: 'force',
     v: 'version',
@@ -24,8 +33,6 @@ const path = require('path');
 const fs = require('fs');
 
 const CLR = '\x1b[K';
-
-let _task = $._.shift() || 'default';
 
 const _ = require('./lib/util');
 const _bin = path.basename(thisPkg.bin);
@@ -64,7 +71,7 @@ if ($.flags.version) {
 _.echo(chalk.gray('↺ Finding Hakifile(s) ...\r'));
 
 const Haki = require('../lib');
-const haki = new Haki($.flags);
+const haki = new Haki(_.merge({}, $.flags, { data: $._ }));
 
 // built-in generators
 require('./Hakifile')(haki);
