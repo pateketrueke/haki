@@ -65,12 +65,17 @@ const home = win
   : process.env.HOME;
 
 const CONFIG = {};
+const CACHE = [];
 
 let depth = 20;
-let count = 0;
 let pwd = cwd;
 
 function load(filepath) {
+  /* istanbul ignore else */
+  if (CACHE.indexOf(filepath) > -1) {
+    return;
+  }
+
   try {
     /* istanbul ignore else */
     if (fs.existsSync(filepath)) {
@@ -81,8 +86,7 @@ function load(filepath) {
         /* istanbul ignore else */
         if (Hakifile.length) {
           require(path.join(filepath, Hakifile[0]))(haki);
-
-          count += 1;
+          CACHE.push(filepath);
         }
       } else {
         _.merge(CONFIG, JSON.parse(fs.readFileSync(filepath).toString()));
@@ -93,6 +97,12 @@ function load(filepath) {
     _.die(1);
   }
 }
+
+load(path.join(etc, '.config', thisPkg.name));
+load(path.join(etc, `.${thisPkg.name}rc`));
+
+load(path.join(home, '.config', thisPkg.name));
+load(path.join(home, `.${thisPkg.name}rc`));
 
 while (depth--) {
   load(path.join(pwd, '.config', thisPkg.name));
@@ -107,13 +117,7 @@ while (depth--) {
   }
 }
 
-load(path.join(home, '.config', thisPkg.name));
-load(path.join(home, `.${thisPkg.name}rc`));
-
-load(path.join(etc, '.config', thisPkg.name));
-load(path.join(etc, `.${thisPkg.name}rc`));
-
-_.echo(chalk.green(`✔ ${count} Hakifile${count === 1 ? '' : 's'} found`), CLR, '\n');
+_.echo(chalk.green(`✔ ${CACHE.length} Hakifile${CACHE.length === 1 ? '' : 's'} found`), CLR, '\n');
 
 /* istanbul ignore else */
 if ($.flags.help) {
