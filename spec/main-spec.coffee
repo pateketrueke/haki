@@ -281,7 +281,7 @@ describe 'Haki', ->
       abortOnFail: true
       actions: [{ type: 'exec', command: 'not_defined_cmd' }]
     ).catch (error) ->
-      expect(error.message).toMatch /command not found/
+      expect(error.message).toMatch /not_defined_cmd.*not found/
 
   it 'will install all dependencies', ->
     haki.runGenerator(
