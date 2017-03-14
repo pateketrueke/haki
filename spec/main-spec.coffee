@@ -185,7 +185,7 @@ describe 'Haki', ->
   it 'will fail when pattern is missing', ->
     haki.runGenerator(
       abortOnFail: true
-      actions: [{ type: 'modify', dest: 'a.txt' }]
+      actions: [{ modify: 'a.txt' }]
     ).catch (error) ->
       expect(error.message).toContain "Invalid pattern, given 'undefined'"
 
@@ -224,8 +224,8 @@ describe 'Haki', ->
       abortOnFail: true
       basePath: fixturesPath
       actions: [
-        { type: 'add', dest: 'copy.txt', src: 'templates/sample.txt' }
-        { type: 'copy', dest: 'copy.txt', src: 'templates/test.txt' }
+        { add: 'copy.txt', src: 'templates/sample.txt' }
+        { copy: 'copy.txt', src: 'templates/test.txt' }
       ]
     ).catch (error) ->
       expect(error.message).toMatch /File '.*test\.txt' cannot be copied/
@@ -272,21 +272,21 @@ describe 'Haki', ->
 
   it 'will execute commands', ->
     haki.runGenerator(
-      actions: [{ type: 'exec', command: 'echo ok' }]
+      actions: [{ exec: 'echo ok' }]
     ).then (result) ->
       expect(result.changes[0].stdOut).toEqual 'ok\n'
 
   it 'will report errors on executing commands', ->
     haki.runGenerator(
       abortOnFail: true
-      actions: [{ type: 'exec', command: 'not_defined_cmd' }]
+      actions: [{ exec: 'not_defined_cmd' }]
     ).catch (error) ->
       expect(error.message).toMatch /not_defined_cmd.*not found/
 
   it 'will install all dependencies', ->
     haki.runGenerator(
       actions: [
-        { type: 'add', dest: 'package.json', template: '''
+        { add: 'package.json', content: '''
           {
             "name": "example",
             "dependencies": {
@@ -304,8 +304,8 @@ describe 'Haki', ->
   it 'will install given dependencies', ->
     haki.runGenerator(
       actions: [
-        { type: 'add', dest: 'package.json', template: '{ "name": "example" }' }
-        { type: 'install', dependencies: ['noop'], dest: '.' }
+        { add: 'package.json', content: '{ "name": "example" }' }
+        { install: ['noop'], dest: '.' }
       ]
     ).then (result) ->
       expect(readFile('node_modules/noop/package.json')).toContain 'noop@'
@@ -315,14 +315,14 @@ describe 'Haki', ->
   it 'will modify given files', (done) ->
     haki._runGenerator(
       actions: [
-        { type: 'add', dest: 'example.txt', template: 'foo' }
-        { type: 'modify', dest: 'example.txt', pattern: /$/, template: '$&\nbar' }
+        { add: 'example.txt', content: 'foo' }
+        { modify: 'example.txt', pattern: /$/, content: '$&\nbar' }
       ]
     ).then (result) ->
       expect(readFile('example.txt')).toEqual 'foo\nbar'
       expect(result.changes).toEqual [
-       { type: 'add', dest: 'example.txt' }
-       { type: 'modify', dest: 'example.txt' }
+        { type: 'add', dest: 'example.txt' }
+        { type: 'modify', dest: 'example.txt' }
       ]
       done()
 
@@ -331,7 +331,7 @@ describe 'Haki', ->
   it 'will clone given repos', ->
     haki.runGenerator(
       actions: [
-        { type: 'clone', dest: '.', gitUrl: 'githubtraining/example-markdown' }
+        { dest: '.', clone: 'githubtraining/example-markdown' }
       ]
     ).then (result) ->
       expect(readFile('README.md')).toContain 'sample-markdown'
@@ -340,10 +340,37 @@ describe 'Haki', ->
   it 'will clean given sources', ->
     haki.runGenerator(
       actions: [
-        { type: 'add', dest: 'rm_dir/a.txt', template: 'x' }
-        { type: 'add', dest: 'rm_dir/b.txt', template: 'y' }
-        { type: 'clean', dest: 'rm_dir/a.txt' }
+        { add: 'rm_dir/a.txt', content: 'x' }
+        { add: 'rm_dir/b.txt', content: 'y' }
+        { clean: 'rm_dir/a.txt' }
       ]
     ).then (result) ->
       expect(-> readFile('rm_dir/a.txt')).toThrow()
       expect(readFile('rm_dir/b.txt')).toEqual 'y'
+
+  it 'will validate given input', ->
+    haki.runGenerator({
+      validate:
+        sample: (x) -> x is 'yes' or 'nope'
+      actions: [{
+        exec: 'echo ok'
+      }]
+    }, { sample: 'x' }).catch (error) ->
+      expect(error).toEqual new Error('nope')
+
+  it 'will set default validators', (done) ->
+    test = null
+
+    haki._runGenerator({
+      validate:
+        sample: (x) ->
+          test = x
+          x is 'yes' or 'nope'
+      prompts: [{
+        name: 'sample'
+      }]
+    }).then (result) ->
+      expect(test).toEqual 'yes'
+      done()
+
+    sendLine 'yes\n'
