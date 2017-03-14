@@ -12,7 +12,7 @@
   "scripts": {
     "dev": "yarn spec -- -w",
     "spec": "_mocha $npm_package_config_mocha",
-    "cover": "istanbul cover _mocha -- $npm_package_config_mocha",
+    "cover": "istanbul cover --root lib _mocha -- $npm_package_config_mocha",
     "lint": "eslint lib && coffeelint spec",
     "cover:up": "codecov --file=coverage/lcov.info --disable=gcov -e TRAVIS_NODE_VERSION",
     "test": "yarn lint && yarn spec"
