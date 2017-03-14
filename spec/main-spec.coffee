@@ -374,3 +374,25 @@ describe 'Haki', ->
       done()
 
     sendLine 'yes\n'
+
+  it 'will render given sources', ->
+    haki.runGenerator({
+      actions: [{
+        add: 'foo.txt'
+        content: '{{value}}'
+      }, {
+        add: 'bar.txt'
+        content: '{{value}}'
+      }, {
+        render: 'bar.txt'
+      }]
+    }, {
+      value: 'foo'
+    }).then (result) ->
+      expect(readFile('foo.txt')).toEqual '{{value}}'
+      expect(readFile('bar.txt')).toEqual 'foo'
+      expect(result.changes).toEqual [
+        { type: 'add', dest: 'foo.txt' }
+        { type: 'add', dest: 'bar.txt' }
+        { type: 'render', dest: 'bar.txt' }
+      ]
