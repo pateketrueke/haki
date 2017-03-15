@@ -5,8 +5,10 @@
 const die = process.exit.bind(process);
 const _slice = Array.prototype.slice;
 
+const CLR = '\x1b[K';
+
 function echo() {
-  process.stdout.write(_slice.call(arguments).join(''));
+  process.stdout.write(_slice.call(arguments).join('').replace(/\r\n/g, `${CLR}\n`));
 }
 
 function merge(target) {
@@ -22,8 +24,13 @@ function merge(target) {
   return target;
 }
 
+function padding(value, max) {
+  return `${value}${new Array(value.length + max).join(' ')}`.substr(0, max);
+}
+
 module.exports = {
   die,
   echo,
   merge,
+  padding,
 };

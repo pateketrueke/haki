@@ -41,8 +41,8 @@ module.exports = haki => {
     description: 'Create a new Hakifile.js',
     actions: [{
       type: 'add',
-      template: HAKIFILE_TXT,
-      destPath: 'Hakifile.js',
+      dest: 'Hakifile.js',
+      content: HAKIFILE_TXT,
     }]
   });
 };

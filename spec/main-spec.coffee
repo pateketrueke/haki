@@ -394,5 +394,4 @@ describe 'Haki', ->
       expect(result.changes).toEqual [
         { type: 'add', dest: 'foo.txt' }
         { type: 'add', dest: 'bar.txt' }
-        { type: 'render', dest: 'bar.txt' }
       ]

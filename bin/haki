@@ -32,14 +32,8 @@ const chalk = require('chalk');
 const path = require('path');
 const fs = require('fs');
 
-const CLR = '\x1b[K';
-
 const _ = require('./lib/util');
 const _bin = path.basename(thisPkg.bin);
-
-function padding(value, max) {
-  return `${value}${new Array(value.length + max).join(' ')}`.substr(0, max);
-}
 
 function showHelp(tasks) {
   _.echo(`  Usage:\n    ${_bin} COMMAND [...]\n`);
@@ -47,8 +41,7 @@ function showHelp(tasks) {
   /* istanbul ignore else */
   if (tasks.length) {
     tasks.forEach(params => {
-      _.echo(`    ${_bin} ${padding(params.name, 20)}`,
-        `  # ${params.task.description || ''}\n`);
+      _.echo(`    ${_bin} ${_.padding(params.name, 20)}  # ${params.task.description || ''}\n`);
     });
   }
 
@@ -114,7 +107,7 @@ function load(filepath) {
       }
     }
   } catch (e) {
-    _.echo(chalk.red(`✗ Wrong '${filepath}': ${($.flags.debug && cleanStack(e.stack)) || e.message}`), CLR, '\n');
+    _.echo(chalk.red(`✗ Wrong '${filepath}': ${($.flags.debug && cleanStack(e.stack)) || e.message}`), '\r\n');
     _.die(1);
   }
 }
@@ -138,7 +131,7 @@ while (depth--) {
   }
 }
 
-_.echo(chalk.green(`✔ ${CACHE.length} Hakifile${CACHE.length === 1 ? '' : 's'} found`), CLR, '\n');
+_.echo(chalk.green(`✔ ${CACHE.length} Hakifile${CACHE.length === 1 ? '' : 's'} found`), '\r\n');
 
 /* istanbul ignore else */
 if ($.flags.help) {
@@ -146,7 +139,7 @@ if ($.flags.help) {
   _.die();
 }
 
-_.echo(chalk.gray(`Haki v${thisPkg.version} (${_task})`), CLR, '\n');
+_.echo(chalk.gray(`Haki v${thisPkg.version} (${_task})`), '\r\n');
 
 if (haki.hasGenerator(_task)) {
   haki.runGenerator(_task, _.merge({}, $.data, $.params, CONFIG))
@@ -155,7 +148,7 @@ if (haki.hasGenerator(_task)) {
       _.die(1);
     });
 } else {
-  _.echo(chalk.red(`✗ Missing '${_task}' generator`), CLR, '\n');
+  _.echo(chalk.red(`✗ Missing '${_task}' generator`), '\r\n');
   _.die(1);
 }
 
