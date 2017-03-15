@@ -146,6 +146,10 @@ if (haki.hasGenerator(_task)) {
     .catch(e => {
       _.echo(chalk.red(($.flags.debug && cleanStack(e.stack)) || e.message), '\n');
       _.die(1);
+    })
+    .then(() => {
+      _.echo(chalk.green('Done.'), '\r\n');
+      _.die();
     });
 } else {
   _.echo(chalk.red(`✗ Missing '${_task}' generator`), '\r\n');
