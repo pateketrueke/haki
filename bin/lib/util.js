@@ -8,7 +8,9 @@ const _slice = Array.prototype.slice;
 const CLR = '\x1b[K';
 
 function echo() {
-  process.stdout.write(_slice.call(arguments).join('').replace(/\r\n/g, `${CLR}\n`));
+  process.stdout.write(_slice.call(arguments).join('')
+    .replace(/\r\r/g, `${CLR}\r`)
+    .replace(/\r\n/g, `${CLR}\n`));
 }
 
 function merge(target) {
