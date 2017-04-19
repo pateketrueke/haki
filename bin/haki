@@ -17,10 +17,15 @@ if (/^(?!-)[\w:-]+$/.test(argv[0])) {
 
 const $ = require('wargs')(argv, {
   aliases: {
-    f: 'force',
+    I: 'no-install',
+    G: 'no-clone',
+    R: 'no-exec',
+    C: 'no-copy',
+    A: 'no-add',
     v: 'version',
     d: 'debug',
     q: 'quiet',
+    f: 'force',
     h: 'help',
   },
 });
