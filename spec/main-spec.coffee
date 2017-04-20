@@ -297,7 +297,7 @@ describe 'Haki', ->
         { type: 'install', dest: '.' }
       ]
     ).then (result) ->
-      expect(readFile('node_modules/noop/package.json')).toContain 'noop@'
+      expect(readFile('node_modules/noop/package.json')).toMatch /"noop(?:@.+?)?"/
       expect(result.changes[1]).toEqual { type: 'install' }
       rimraf.sync path.join(fixturesPath, 'node_modules')
 
@@ -308,7 +308,7 @@ describe 'Haki', ->
         { install: ['noop'], dest: '.' }
       ]
     ).then (result) ->
-      expect(readFile('node_modules/noop/package.json')).toContain 'noop@'
+      expect(readFile('node_modules/noop/package.json')).toMatch /"noop(?:@.+?)?"/
       expect(result.changes[1]).toEqual { type: 'install', dependencies: ['noop'] }
       rimraf.sync path.join(fixturesPath, 'node_modules')
 
