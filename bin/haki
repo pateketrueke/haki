@@ -136,12 +136,17 @@ while (depth--) {
   }
 }
 
+function end() {
+  _.echo(chalk.green('Done.'), '\r\n');
+  _.die();
+}
+
 _.echo(chalk.green(`✔ ${CACHE.length} Hakifile${CACHE.length === 1 ? '' : 's'} found`), '\r\n');
 
 /* istanbul ignore else */
 if ($.flags.help) {
   showHelp(haki.getGeneratorList());
-  _.die();
+  end();
 }
 
 _.echo(chalk.gray(`Haki v${thisPkg.version} (${_task})`), '\r\n');
@@ -153,8 +158,7 @@ if (haki.hasGenerator(_task)) {
       _.die(1);
     })
     .then(() => {
-      _.echo(chalk.green('Done.'), '\r\n');
-      _.die();
+      end();
     });
 } else {
   _.echo(chalk.red(`✗ Missing '${_task}' generator`), '\r\n');
