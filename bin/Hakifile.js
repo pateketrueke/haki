@@ -22,6 +22,6 @@ module.exports = haki => {
     description: 'Print a huge banner ;-)',
     actions() {
       process.stdout.write(`${HAKI_TXT}\n`);
-    }
+    },
   });
 };

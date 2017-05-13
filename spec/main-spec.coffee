@@ -1,4 +1,3 @@
-expect = require('expect')
 rimraf = require('rimraf')
 ttys = require('ttys')
 path = require('path')
@@ -161,42 +160,47 @@ describe 'Haki', ->
 
     sendLine 'b\n'
 
-  it 'will validate actions', ->
+  it 'will validate actions', (done) ->
     haki.runGenerator(
       abortOnFail: true
       actions: [{}]
     ).catch (error) ->
       expect(error.message).toContain "Unsupported 'undefined' action"
+      done()
 
-  it 'will fail when dest is missing', ->
+  it 'will fail when dest is missing', (done) ->
     haki.runGenerator(
       abortOnFail: true
       actions: [{ type: 'add' }]
     ).catch (error) ->
       expect(error.message).toContain "Invalid dest, given 'undefined'"
+      done()
 
-  it 'will fail when src is missing', ->
+  it 'will fail when src is missing', (done) ->
     haki.runGenerator(
       abortOnFail: true
       actions: [{ type: 'copy', dest: 'a.txt' }]
     ).catch (error) ->
       expect(error.message).toContain "Invalid src, given 'undefined'"
+      done()
 
-  it 'will fail when pattern is missing', ->
+  it 'will fail when pattern is missing', (done) ->
     haki.runGenerator(
       abortOnFail: true
       actions: [{ modify: 'a.txt' }]
     ).catch (error) ->
       expect(error.message).toContain "Invalid pattern, given 'undefined'"
+      done()
 
-  it 'will fail on unsupported prompts', ->
+  it 'will fail on unsupported prompts', (done) ->
     haki.runGenerator(
       abortOnFail: true
       prompts: [{ type: 'x' }]
     ).catch (error) ->
       expect(error.message).toContain "Unsupported 'x' prompt"
+      done()
 
-  it 'will fail on broken actions', ->
+  it 'will fail on broken actions', (done) ->
     haki.runGenerator(
       abortOnFail: true
       actions: [
@@ -204,6 +208,7 @@ describe 'Haki', ->
       ]
     ).catch (error) ->
       expect(error.message).toContain 'FAIL'
+      done()
 
   it 'will fail on broken prompts', (done) ->
     haki._runGenerator(
@@ -263,27 +268,30 @@ describe 'Haki', ->
 
     sendLine 'x\n'
 
-  it 'will report missing commands', ->
+  it 'will report missing commands', (done) ->
     haki.runGenerator(
       abortOnFail: true
       actions: [{ type: 'exec' }]
     ).catch (error) ->
       expect(error.message).toContain "Invalid command, given 'undefined'"
+      done()
 
-  it 'will execute commands', ->
+  it 'will execute commands', (done) ->
     haki.runGenerator(
       actions: [{ exec: 'echo ok' }]
     ).then (result) ->
       expect(result.changes[0].stdOut).toEqual 'ok\n'
+      done()
 
-  it 'will report errors on executing commands', ->
+  it 'will report errors on executing commands', (done) ->
     haki.runGenerator(
       abortOnFail: true
       actions: [{ exec: 'not_defined_cmd' }]
     ).catch (error) ->
       expect(error.message).toMatch /not_defined_cmd.*not found/
+      done()
 
-  it 'will install all dependencies', ->
+  it 'will install all dependencies', (done) ->
     haki.runGenerator(
       actions: [
         { add: 'package.json', content: '''
@@ -300,8 +308,9 @@ describe 'Haki', ->
       expect(readFile('node_modules/noop/package.json')).toMatch /"noop(?:@.+?)?"/
       expect(result.changes[1]).toEqual { type: 'install' }
       rimraf.sync path.join(fixturesPath, 'node_modules')
+      done()
 
-  it 'will install given dependencies', ->
+  it 'will install given dependencies', (done) ->
     haki.runGenerator(
       actions: [
         { add: 'package.json', content: '{ "name": "example" }' }
@@ -311,6 +320,7 @@ describe 'Haki', ->
       expect(readFile('node_modules/noop/package.json')).toMatch /"noop(?:@.+?)?"/
       expect(result.changes[1]).toEqual { type: 'install', dependencies: ['noop'] }
       rimraf.sync path.join(fixturesPath, 'node_modules')
+      done()
 
   it 'will modify given files', (done) ->
     haki._runGenerator(
@@ -328,7 +338,7 @@ describe 'Haki', ->
 
     sendLine 'y\n'
 
-  it 'will clone given repos', ->
+  it 'will clone given repos', (done) ->
     haki.runGenerator(
       actions: [
         { dest: '.', clone: 'githubtraining/example-markdown' }
@@ -336,8 +346,9 @@ describe 'Haki', ->
     ).then (result) ->
       expect(readFile('README.md')).toContain 'sample-markdown'
       expect(result.changes).toEqual [{ type: 'clone', repository: 'githubtraining/example-markdown' }]
+      done()
 
-  it 'will clean given sources', ->
+  it 'will clean given sources', (done) ->
     haki.runGenerator(
       actions: [
         { add: 'rm_dir/a.txt', content: 'x' }
@@ -347,8 +358,9 @@ describe 'Haki', ->
     ).then (result) ->
       expect(-> readFile('rm_dir/a.txt')).toThrow()
       expect(readFile('rm_dir/b.txt')).toEqual 'y'
+      done()
 
-  it 'will validate given input', ->
+  it 'will validate given input', (done) ->
     haki.runGenerator({
       validate:
         sample: (x) -> x is 'yes' or 'nope'
@@ -357,6 +369,7 @@ describe 'Haki', ->
       }]
     }, { sample: 'x' }).catch (error) ->
       expect(error).toEqual new Error('nope')
+      done()
 
   it 'will set default validators', (done) ->
     test = null
@@ -375,7 +388,7 @@ describe 'Haki', ->
 
     sendLine 'yes\n'
 
-  it 'will render given sources', ->
+  it 'will render given sources', (done) ->
     haki.runGenerator({
       actions: [{
         add: 'foo.txt'
@@ -395,3 +408,4 @@ describe 'Haki', ->
         { type: 'add', dest: 'foo.txt' }
         { type: 'add', dest: 'bar.txt' }
       ]
+      done()
