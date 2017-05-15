@@ -1,4 +1,5 @@
 #!/bin/sh
+
 ':' // ; exec "$(command -v nodejs || command -v node)" "$0" "$@"
 ;
 
@@ -16,6 +17,7 @@ if (/^(?!-)[\w:-]+$/.test(argv[0])) {
 }
 
 const $ = require('wargs')(argv, {
+  booleans: 'IGRCAvdqfh',
   aliases: {
     I: 'no-install',
     G: 'no-clone',
@@ -38,6 +40,7 @@ const path = require('path');
 const fs = require('fs');
 
 const _ = require('./lib/util');
+
 const _bin = path.basename(thisPkg.bin);
 
 function showHelp(tasks) {
@@ -69,6 +72,7 @@ if ($.flags.version) {
 _.echo(chalk.gray('↺ Finding Hakifile(s) ...\r'));
 
 const Haki = require('../lib');
+
 const haki = new Haki(_.merge({}, $.flags, { data: $._ }));
 
 // built-in generators
@@ -123,12 +127,14 @@ load(path.join(etc, `.${thisPkg.name}rc`));
 load(path.join(home, '.config', thisPkg.name));
 load(path.join(home, `.${thisPkg.name}rc`));
 
-while (depth--) {
+while (depth > 0) {
   load(path.join(pwd, '.config', thisPkg.name));
   load(path.join(pwd, `.${thisPkg.name}rc`));
   load(pwd);
 
   pwd = path.dirname(pwd);
+
+  depth -= 1;
 
   /* istanbul ignore else */
   if (pwd === '/' || pwd === home) {
