@@ -280,8 +280,6 @@ function run() {
     end();
   }
 
-  _.echo(chalk.gray(`Haki v${thisPkg.version} (${_task})`), '\r\n');
-
   if (haki.hasGenerator(_task)) {
     haki.runGenerator(_task, _.merge({}, $.data, $.params, CONFIG))
       .catch(e => {
@@ -296,6 +294,8 @@ function run() {
     _.die(1);
   }
 }
+
+_.echo(chalk.gray(`Haki v${thisPkg.version} (${_task})`), '\r\n');
 
 /* istanbul ignore else */
 if ($.flags.gist) {
