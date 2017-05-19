@@ -338,6 +338,37 @@ describe 'Haki', ->
 
     sendLine 'y\n'
 
+  it 'will extend json objects', (done) ->
+    test = null
+    haki._runGenerator(
+      actions: [
+        { add: 'example.json', content: '{"foo":"bar"}' }
+        {
+          extend: 'example.json'
+          callback: (data) ->
+            data.baz = 'buzz'
+            test = data
+        }
+      ]
+    ).then (result) ->
+      expect(readFile('example.json')).toContain '''
+        {
+          "foo": "bar",
+          "baz": "buzz"
+        }
+      '''
+      expect(result.changes).toEqual [
+        { type: 'add', dest: 'example.json' }
+        { type: 'extend', dest: 'example.json' }
+      ]
+      expect(test).toEqual {
+        foo: 'bar'
+        baz: 'buzz'
+      }
+      done()
+
+    sendLine 'y\n'
+
   it 'will clone given repos', (done) ->
     haki.runGenerator(
       actions: [
