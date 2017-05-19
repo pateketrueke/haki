@@ -9,6 +9,15 @@
 
 const argv = process.argv.slice(2);
 
+// partial impl from `rc`
+const win = process.platform === 'win32';
+const cwd = process.cwd();
+const etc = '/etc';
+
+const home = win
+  ? process.env.USERPROFILE
+  : process.env.HOME;
+
 let _task = 'default';
 
 /* istanbul ignore else */
@@ -28,6 +37,7 @@ const $ = require('wargs')(argv, {
     d: 'debug',
     q: 'quiet',
     f: 'force',
+    g: 'gist',
     h: 'help',
   },
 });
@@ -41,7 +51,19 @@ const fs = require('fs');
 
 const _ = require('./lib/util');
 
+const CONFIG = {};
+const CACHE = [];
+
 const _bin = path.basename(thisPkg.bin);
+const _gists = path.join(home, '.config', thisPkg.name, 'gists');
+
+if (!fs.existsSync(path.dirname(_gists))) {
+  fs.mkdirSync(path.dirname(_gists));
+}
+
+if (!fs.existsSync(_gists)) {
+  fs.mkdirSync(_gists);
+}
 
 function showHelp(tasks) {
   _.echo(`  Usage:\n    ${_bin} COMMAND [...]\n`);
@@ -55,6 +77,7 @@ function showHelp(tasks) {
 
   _.echo(`
   Options:
+    -g, [--gist]         # Manage and download gists (e.g. -g 8c918388a28612778668aa66b5a8f406)
     -f, [--force]        # Overwrite files that already exist
     -v, [--version]      # Print version and quit
     -d, [--debug]        # Print stack on error
@@ -69,29 +92,69 @@ if ($.flags.version) {
   _.die();
 }
 
-_.echo(chalk.gray('↺ Finding Hakifile(s) ...\r'));
+let depth = 20;
+let pwd = cwd;
+let tmp;
 
 const Haki = require('../lib');
 
 const haki = new Haki(_.merge({}, $.flags, { data: $._ }));
 
-// built-in generators
-require('./Hakifile')(haki);
+function gists(id) {
+  if (!tmp) {
+    tmp = {};
+    fs.readdirSync(_gists)
+      .filter(src => src.indexOf('.json') > -1)
+      .forEach(src => {
+        tmp[path.basename(src, '.json')] = require(path.join(_gists, src));
+      });
+  }
 
-// partial impl from `rc`
-const win = process.platform === 'win32';
-const cwd = process.cwd();
-const etc = '/etc';
+  if (id) {
+    return tmp[id];
+  }
 
-const home = win
-  ? process.env.USERPROFILE
-  : process.env.HOME;
+  return tmp;
+}
 
-const CONFIG = {};
-const CACHE = [];
+function detail(data) {
+  _.echo(chalk.gray('—'), ' ', chalk.cyan(data.html_url), '\r\n');
+  _.echo(chalk.gray(`  ${data.updated_at} <${data.owner.login}>`), '\r\n');
+  _.echo(chalk.gray(`  ${data.description}`), '\r\n');
+}
 
-let depth = 20;
-let pwd = cwd;
+function setup(id, data) {
+  if (!(data.files && data.files['Hakifile.js'])) {
+    throw new Error(`Gist ${data.html_url} does not contains a Hakifile.js`);
+  }
+
+  _.echo(chalk.gray(`↺ Saving gist ${id} ...`), '\r\r');
+
+  const dir = path.join(_gists, id);
+
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir);
+  }
+
+  Object.keys(data.files).forEach(src => {
+    fs.writeFileSync(path.join(dir, src), data.files[src].content);
+  });
+
+  _.echo(chalk.green(`✔ Gist ${id} saved`), '\r\n');
+
+  detail(data);
+}
+
+function save(id, data) {
+  try {
+    setup(id, data);
+  } catch (e) {
+    _.echo(chalk.red(($.flags.debug && cleanStack(e.stack)) || e.message), '\n');
+    _.die(1);
+  }
+
+  fs.writeFileSync(path.join(_gists, `${id}.json`), JSON.stringify(data));
+}
 
 function load(filepath) {
   /* istanbul ignore else */
@@ -121,25 +184,17 @@ function load(filepath) {
   }
 }
 
-load(path.join(etc, '.config', thisPkg.name));
-load(path.join(etc, `.${thisPkg.name}rc`));
+function list() {
+  _.echo(chalk.gray(`↺ Listing gists from ${_gists} ...`), '\r\r');
 
-load(path.join(home, '.config', thisPkg.name));
-load(path.join(home, `.${thisPkg.name}rc`));
+  const src = gists();
+  const keys = Object.keys(src).length;
 
-while (depth > 0) {
-  load(path.join(pwd, '.config', thisPkg.name));
-  load(path.join(pwd, `.${thisPkg.name}rc`));
-  load(pwd);
+  Object.keys(src).forEach(key => {
+    detail(src[key]);
+  });
 
-  pwd = path.dirname(pwd);
-
-  depth -= 1;
-
-  /* istanbul ignore else */
-  if (pwd === '/' || pwd === home) {
-    break;
-  }
+  _.echo(chalk.green(`✔ ${keys} gist${keys === 1 ? '' : 's'} found`), '\r\n');
 }
 
 function end() {
@@ -147,28 +202,111 @@ function end() {
   _.die();
 }
 
-_.echo(chalk.green(`✔ ${CACHE.length} Hakifile${CACHE.length === 1 ? '' : 's'} found`), '\r\n');
+function get(id) {
+  let data = '';
 
-/* istanbul ignore else */
-if ($.flags.help) {
-  showHelp(haki.getGeneratorList());
-  end();
+  _.echo(chalk.gray(`↺ Gist ${id} ...\r\r`));
+
+  if (gists(id) && $.flags.force !== true) {
+    _.echo(chalk.red(`Gist ${id} already installed`), '\r\n');
+    _.die(1);
+    return;
+  }
+
+  require('https').get({
+    path: `/gists/${id}`,
+    host: 'api.github.com',
+    headers: {
+      'User-Agent': `NodeJS/Haki v${thisPkg.version}`,
+    },
+  }, res => {
+    res.on('data', chunk => {
+      data += chunk;
+    });
+
+    res.on('end', () => {
+      try {
+        save(id, JSON.parse(data));
+        end();
+      } catch (e) {
+        _.echo(chalk.red(($.flags.debug && cleanStack(e.stack)) || e.message), '\n');
+        _.die(1);
+      }
+    });
+  })
+  .on('error', e => {
+    _.echo(chalk.red(($.flags.debug && cleanStack(e.stack)) || e.message), '\n');
+    _.die();
+  });
 }
 
-_.echo(chalk.gray(`Haki v${thisPkg.version} (${_task})`), '\r\n');
+function run() {
+  _.echo(chalk.gray('↺ Finding Hakifile(s) ...\r\r'));
 
-if (haki.hasGenerator(_task)) {
-  haki.runGenerator(_task, _.merge({}, $.data, $.params, CONFIG))
-    .catch(e => {
-      _.echo(chalk.red(($.flags.debug && cleanStack(e.stack)) || e.message), '\n');
-      _.die(1);
-    })
-    .then(() => {
-      end();
-    });
+  // built-in generators
+  require('./Hakifile')(haki);
+
+  load(path.join(etc, '.config', thisPkg.name));
+  load(path.join(etc, `.${thisPkg.name}rc`));
+
+  load(path.join(home, '.config', thisPkg.name));
+  load(path.join(home, `.${thisPkg.name}rc`));
+
+  while (depth > 0) {
+    load(path.join(pwd, '.config', thisPkg.name));
+    load(path.join(pwd, `.${thisPkg.name}rc`));
+    load(pwd);
+
+    pwd = path.dirname(pwd);
+
+    depth -= 1;
+
+    /* istanbul ignore else */
+    if (pwd === '/' || pwd === home) {
+      break;
+    }
+  }
+
+  // installed gists
+  Object.keys(gists()).forEach(id => {
+    load(path.join(_gists, id));
+  });
+
+  _.echo(chalk.green(`✔ ${CACHE.length} Hakifile${CACHE.length === 1 ? '' : 's'} found`), '\r\n');
+
+  /* istanbul ignore else */
+  if ($.flags.help) {
+    showHelp(haki.getGeneratorList());
+    end();
+  }
+
+  _.echo(chalk.gray(`Haki v${thisPkg.version} (${_task})`), '\r\n');
+
+  if (haki.hasGenerator(_task)) {
+    haki.runGenerator(_task, _.merge({}, $.data, $.params, CONFIG))
+      .catch(e => {
+        _.echo(chalk.red(($.flags.debug && cleanStack(e.stack)) || e.message), '\n');
+        _.die(1);
+      })
+      .then(() => {
+        end();
+      });
+  } else {
+    _.echo(chalk.red(`✗ Missing '${_task}' generator`), '\r\n');
+    _.die(1);
+  }
+}
+
+/* istanbul ignore else */
+if ($.flags.gist) {
+  /* istanbul ignore else */
+  if ($.flags.gist !== true) {
+    get($.flags.gist);
+  } else {
+    list();
+  }
 } else {
-  _.echo(chalk.red(`✗ Missing '${_task}' generator`), '\r\n');
-  _.die(1);
+  run();
 }
 
 process.on('SIGINT', () => process.exit());
