@@ -117,9 +117,10 @@ describe 'Haki', ->
 
     test = haki.getGeneratorList()[0]
 
-    expect(test.name).toEqual 'other'
-    expect(test.task.basePath).toEqual fixturesPath
-    expect(test.task.description).toEqual 'Another generator test'
+    expect(test.name).toEqual 'Another generator test'
+    expect(test.generate).toEqual 'other'
+    expect(test.result.basePath).toEqual fixturesPath
+    expect(test.result.description).toEqual 'Another generator test'
 
   it 'will export getPath()', ->
     expect(haki.getPath()).toEqual generatedPath
