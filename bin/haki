@@ -26,8 +26,11 @@ if (/^(?!-)[\w:-]+$/.test(argv[0])) {
 }
 
 const $ = require('wargs')(argv, {
-  booleans: 'IGRCAvdqfh',
+  camelCase: true,
+  booleans: 'ODIGRCAvdqfh',
   aliases: {
+    O: 'no-install-opts',
+    D: 'no-install-dev',
     I: 'no-install',
     G: 'no-clone',
     R: 'no-exec',

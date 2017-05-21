@@ -302,11 +302,11 @@ describe 'Haki', ->
             }
           }
         ''' }
-        { type: 'install', dest: '.' }
+        { install: [], dest: '.' }
       ]
     ).then (result) ->
       expect(readFile('node_modules/noop/package.json')).toMatch /"noop(?:@.+?)?"/
-      expect(result.changes[1]).toEqual { type: 'install' }
+      expect(result.changes[1]).toEqual { type: 'install', dependencies: [] }
       rimraf.sync path.join(fixturesPath, 'node_modules')
       done()
 
