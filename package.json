@@ -3,7 +3,7 @@
   "version": "0.2.7",
   "main": "lib/index.js",
   "bin": "bin/haki",
-  "description": "Super fast generator!",
+  "description": "Small generator with will powers",
   "author": "Alvaro Cabrera <pateketrueke@gmail.com>",
   "license": "MIT",
   "config": {
