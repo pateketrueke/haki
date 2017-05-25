@@ -74,7 +74,9 @@ function showHelp(tasks) {
   /* istanbul ignore else */
   if (tasks.length) {
     tasks.forEach(params => {
-      _.echo(`    ${_bin} ${_.padding(params.name, 20)}  # ${params.task.description || ''}\n`);
+      _.echo(`    ${_bin} ${_.padding(params.generate, 20)}${
+        params.result.description ? ['  # ', params.result.description].join('') : ''
+      }\n`);
     });
   }
 
