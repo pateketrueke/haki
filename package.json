@@ -1,6 +1,6 @@
 {
   "name": "haki",
-  "version": "0.3.3",
+  "version": "0.3.4",
   "main": "lib/index.js",
   "bin": "bin/haki",
   "description": "Small generator with will powers",
@@ -37,7 +37,7 @@
     "prompt-rawlist": "^0.2.1",
     "readline-ui": "^0.1.2",
     "rimraf": "^2.6.1",
-    "wargs": "^0.6.2"
+    "wargs": "^0.6.3"
   },
   "devDependencies": {
     "codecov": "^2.2.0",
