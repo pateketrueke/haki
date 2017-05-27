@@ -74,8 +74,8 @@ function showHelp(tasks) {
   /* istanbul ignore else */
   if (tasks.length) {
     tasks.forEach(params => {
-      _.echo(`    ${_bin} ${_.padding(params.generate, 20)}${
-        params.result.description ? ['  # ', params.result.description].join('') : ''
+      _.echo(`    ${_bin} ${_.padding(params.gen, 20)}${
+        params.value.description ? ['  # ', params.value.description].join('') : ''
       }\n`);
     });
   }
@@ -199,12 +199,7 @@ function list() {
     detail(src[key]);
   });
 
-  _.echo(chalk.green(`✔ ${keys} gist${keys === 1 ? '' : 's'} found`), '\r\n');
-}
-
-function end() {
-  _.echo(chalk.green('Done.'), '\r\n');
-  _.die();
+  _.echo(chalk.gray(`› ${keys} gist${keys === 1 ? '' : 's'} found`), '\r\n');
 }
 
 function get(id) {
@@ -232,7 +227,7 @@ function get(id) {
     res.on('end', () => {
       try {
         save(id, JSON.parse(data));
-        end();
+        _.die();
       } catch (e) {
         _.echo(chalk.red(($.flags.debug && cleanStack(e.stack)) || e.message), '\n');
         _.die(1);
@@ -277,12 +272,12 @@ function run() {
     load(path.join(_gists, id));
   });
 
-  _.echo(chalk.green(`✔ ${CACHE.length} Hakifile${CACHE.length === 1 ? '' : 's'} found`), '\r\n');
+  _.echo(chalk.gray(`› ${CACHE.length} Hakifile${CACHE.length === 1 ? '' : 's'} found`), '\r\n');
 
   /* istanbul ignore else */
   if ($.flags.help) {
     showHelp(haki.getGeneratorList());
-    end();
+    _.die();
   }
 
   if (haki.hasGenerator(_task)) {
@@ -291,16 +286,14 @@ function run() {
         _.echo(chalk.red(($.flags.debug && cleanStack(e.stack)) || e.message), '\n');
         _.die(1);
       })
-      .then(() => {
-        end();
-      });
+      .then(() => Haki.closeAll());
   } else {
     _.echo(chalk.red(`✗ Missing '${_task}' generator`), '\r\n');
     _.die(1);
   }
 }
 
-_.echo(chalk.gray(`Haki v${thisPkg.version} (${_task})`), '\r\n');
+_.echo(chalk.green(`Haki v${thisPkg.version}`), ' ', chalk.gray(`(${_task})`), '\r\n');
 
 /* istanbul ignore else */
 if ($.flags.gist) {
@@ -313,5 +306,14 @@ if ($.flags.gist) {
 } else {
   run();
 }
+
+process.on('exit', statusCode => {
+  Haki.closeAll();
+
+  _.echo('\r\r', statusCode > 0
+    ? chalk.red('✗ Failed')
+    : chalk.green('✔ Done.'), '\r\n');
+  _.die();
+});
 
 process.on('SIGINT', () => process.exit());
