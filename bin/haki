@@ -77,10 +77,10 @@ const util = require('../lib/utils');
 const haki = new Haki(util.extend({}, $.flags, { data: $._ }));
 
 const log = haki.log
-  .getLogger(10, process.stdout, process.stderr);
+  .getLogger(12, process.stdout, process.stderr);
 
 function showError(e) {
-  log.printf('{err|%s}\r\n', ($.flags.debug && cleanStack(e.stack)) || e.message);
+  log.printf('{fail|%s}\r\n', ($.flags.debug && cleanStack(e.stack)) || e.message);
 }
 
 function showHelp(tasks) {
@@ -127,7 +127,7 @@ function gists(id) {
 }
 
 function detail(data) {
-  log.printf('{cyan.log|%s}\r\n', data.html_url);
+  log.printf('{cyan.pointer|%s}\r\n', data.html_url);
   log.printf('  {gray|%s <%s>}\r\n', data.updated_at, data.owner.login);
   log.printf('  {gray|%s}\r\n', data.description);
 }
@@ -138,7 +138,7 @@ function setup(id, data) {
       /* istanbul ignore else */
       if (data.message) {
         log.printf('\r\r{warn|%s}\n', data.message);
-        log.printf('{hint|%s}\n', data.documentation_url);
+        log.printf('{log|%s}\n', data.documentation_url);
         util.die(1);
       }
 
@@ -203,7 +203,7 @@ function load(filepath) {
       }
     }
   } catch (e) {
-    log.write('{err|Error in %s: %s}\r\n', filepath, ($.flags.debug && cleanStack(e.stack)) || e.message);
+    log.write('{fail|Error in %s: %s}\r\n', filepath, ($.flags.debug && cleanStack(e.stack)) || e.message);
     util.die(1);
   }
 }
@@ -218,7 +218,7 @@ function list() {
     detail(src[key]);
   });
 
-  log.printf('{gray.hint|%s gist%s found}\n', keys, keys === 1 ? '' : 's');
+  log.printf('{log|%s gist%s found}\n', keys, keys === 1 ? '' : 's');
 }
 
 function get(id) {
@@ -269,7 +269,7 @@ function get(id) {
 }
 
 function run() {
-  log.write('{wait.gray|Finding Hakifile(s) ...}\r\r');
+  log.write('{wait|Finding Hakifile(s) ...}\r\r');
 
   // built-in generators
   require('./Hakifile')(haki);
@@ -300,7 +300,7 @@ function run() {
     load(path.join(_gists, id));
   });
 
-  log.printf('{gray.hint|%s Hakifile%s found}\r\n', CACHE.length, CACHE.length === 1 ? '' : 's');
+  log.printf('{log|%s Hakifile%s found}\r\n', CACHE.length, CACHE.length === 1 ? '' : 's');
 
   /* istanbul ignore else */
   if ($.flags.help) {
@@ -311,12 +311,12 @@ function run() {
   if (haki.hasGenerator(_task)) {
     haki.runGenerator(_task, util.extend({}, $.data, $.params, CONFIG))
       .catch(e => {
-        log.printf('{err|%s}\r\n', ($.flags.debug && cleanStack(e.stack)) || e.message);
+        log.printf('{fail|%s}\r\n', ($.flags.debug && cleanStack(e.stack)) || e.message);
         util.die(1);
       })
       .then(() => Haki.closeAll());
   } else {
-    log.printf('{err|Missing %s generator}\r\n', _task);
+    log.printf('{fail|Missing %s generator}\r\n', _task);
     util.die(1);
   }
 }
@@ -333,7 +333,7 @@ log.printf('{green|Haki v%s} {gray|(%s)}\n', thisPkg.version, _task);
 process.on('exit', statusCode => {
   /* istanbul ignore else */
   if (!statusCode) {
-    log.printf('\r\r{ok.cyan|Done.}\r\n');
+    log.printf('\r\r{ok|Done.}\r\n');
   }
   Haki.closeAll();
   util.die();
