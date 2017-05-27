@@ -77,7 +77,7 @@ const util = require('../lib/utils');
 const haki = new Haki(util.extend({}, $.flags, { data: $._ }));
 
 const log = haki.log
-  .getLogger(10, process.stdout.write.bind(process.stdout));
+  .getLogger(10, process.stdout, process.stderr);
 
 function showError(e) {
   log.printf('{err|%s}\r\n', ($.flags.debug && cleanStack(e.stack)) || e.message);
