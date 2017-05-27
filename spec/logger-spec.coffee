@@ -16,8 +16,9 @@ describe 'Haki.log', ->
     @log = logger.getLogger(10, stdout(), stderr())
 
   it 'can print status', (done) ->
-    #all sync
     logger.setLevel(1)
+
+    #all sync
     @log()
     @log('ok')
     @log('foo')
@@ -32,7 +33,7 @@ describe 'Haki.log', ->
           resolve(null)
         , 100
       )
-    ).then (x) ->
+    ).then ->
       expect(stdout.buffer.length).toEqual 9
       done()
 
