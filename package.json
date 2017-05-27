@@ -27,6 +27,7 @@
     "glob": "^7.1.2",
     "mustache": "^2.3.0",
     "pluralize": "^3.1.0",
+    "pretty-ms": "^2.1.0",
     "prompt-checkbox": "^0.4.2",
     "prompt-confirm": "^0.2.1",
     "prompt-expand": "^0.1.0",

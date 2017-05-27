@@ -7,10 +7,24 @@ const _slice = Array.prototype.slice;
 
 const CLR = '\x1b[K';
 
-function echo() {
-  process.stdout.write(_slice.call(arguments).join('')
+const symbols = {
+  ok: '✔',
+  err: '✗',
+  log: '—',
+  diff: '≠',
+  warn: '⚠',
+  info: 'ℹ',
+  hint: '›',
+  wait: '↺',
+};
+
+function puts(message) {
+  const args = Array.prototype.slice.call(arguments, 1);
+
+  return String(message)
     .replace(/\r\r/g, `${CLR}\r`)
-    .replace(/\r\n/g, `${CLR}\n`));
+    .replace(/\r\n/g, `${CLR}\n`)
+    .replace(/%s/g, () => args.shift());
 }
 
 function merge(target) {
@@ -32,7 +46,8 @@ function padding(value, max) {
 
 module.exports = {
   die,
-  echo,
+  puts,
   merge,
   padding,
+  symbols,
 };
