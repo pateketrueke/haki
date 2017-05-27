@@ -333,7 +333,7 @@ log.printf('{green|Haki v%s} {gray|(%s)}\n', thisPkg.version, _task);
 process.on('exit', statusCode => {
   /* istanbul ignore else */
   if (!statusCode) {
-    log.printf('\r\r{ok|Done.}\r\n');
+    log.printf('\r\r{end|Done.}\r\n');
   }
   Haki.closeAll();
   util.die();
