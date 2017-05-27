@@ -339,6 +339,8 @@ process.on('exit', statusCode => {
   util.die();
 });
 
+process.on('SIGINT', () => process.exit());
+
 /* istanbul ignore else */
 if ($.flags.gist) {
   /* istanbul ignore else */

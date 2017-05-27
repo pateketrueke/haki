@@ -14,11 +14,9 @@ stderr = -> {}
 describe 'Haki.log', ->
   beforeEach ->
     @log = logger.getLogger(10, stdout(), stderr())
-
-  it 'can print status', (done) ->
     logger.setLevel(1)
 
-    #all sync
+  it 'can print status', (done) ->
     @log()
     @log('ok')
     @log('foo')
@@ -26,15 +24,17 @@ describe 'Haki.log', ->
     @log('fail', 'message')
     @log('write', 'message', -> 42)
 
-    # async
-    @log('async', { src: 'input', dest: 'output' }, ->
-      new Promise((resolve) ->
-        setTimeout ->
-          resolve(null)
-        , 100
-      )
-    ).then ->
-      expect(stdout.buffer.length).toEqual 9
+    .then =>
+      expect(stdout.buffer.length).toEqual 13
+
+      @log 'async', { src: 'input', dest: 'output' }, ->
+        new Promise (resolve) ->
+          setTimeout ->
+            resolve(null)
+          , 1000
+
+    .then ->
+      expect(stdout.buffer.length).toEqual 25
       done()
 
   it 'can handle levels', ->
