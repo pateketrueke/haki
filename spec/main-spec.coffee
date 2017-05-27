@@ -25,19 +25,20 @@ tty_on = ->
   ttys.stdout.write = tty_write
 
 # TODO:
-log = null
 haki = null
+
+_logger = (type, src, cb) -> cb()
+_logger.write = (x...) ->
+_logger.printf = (y...) ->
 
 describe 'Haki', ->
   beforeEach ->
     rimraf.sync generatedPath
-    log = []
     haki = new Haki
-      quiet: true
+      logger: _logger
       cwd: generatedPath
       stdin: ttys.stdin
       stdout: ttys.stdout
-      logger: (line) -> log.push(line)
     # safe wrapper
     haki._runGenerator = (args...) ->
       tty_off()
