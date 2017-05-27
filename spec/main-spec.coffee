@@ -49,6 +49,9 @@ describe 'Haki', ->
           tty_on()
           result
 
+  afterEach ->
+    Haki.closeAll()
+
   it 'should handle errors', (done) ->
     pass = []
 
@@ -117,10 +120,10 @@ describe 'Haki', ->
 
     test = haki.getGeneratorList()[0]
 
+    expect(test.gen).toEqual 'other'
     expect(test.name).toEqual 'Another generator test'
-    expect(test.generate).toEqual 'other'
-    expect(test.result.basePath).toEqual fixturesPath
-    expect(test.result.description).toEqual 'Another generator test'
+    expect(test.value.basePath).toEqual fixturesPath
+    expect(test.value.description).toEqual 'Another generator test'
 
   it 'will export getPath()', ->
     expect(haki.getPath()).toEqual generatedPath
