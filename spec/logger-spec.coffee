@@ -14,6 +14,7 @@ describe 'Haki.log', ->
 
   it 'can print status', (done) ->
     #all sync
+    logger.setLevel(1)
     @log()
     @log('ok')
     @log('foo')
