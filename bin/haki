@@ -203,7 +203,7 @@ function load(filepath) {
       }
     }
   } catch (e) {
-    log.write('{fail|Error in %s: %s}\r\n', filepath, ($.flags.debug && cleanStack(e.stack)) || e.message);
+    log.printf('{fail|Error in %s: %s}\r\n', filepath, ($.flags.debug && cleanStack(e.stack)) || e.message);
     util.die(1);
   }
 }
@@ -269,7 +269,7 @@ function get(id) {
 }
 
 function run() {
-  log.write('{wait|Finding Hakifile(s) ...}\r\r');
+  log.printf('{wait|Finding Hakifile(s) ...}\r\r');
 
   // built-in generators
   require('./Hakifile')(haki);
