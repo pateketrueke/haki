@@ -76,7 +76,8 @@ const util = require('../lib/utils');
 
 const haki = new Haki(util.extend({}, $.flags, { data: $._ }));
 
-const log = haki.log
+// nice logs!
+const log = require('log-pose')
   .getLogger(12, process.stdout, process.stderr);
 
 function showError(e) {

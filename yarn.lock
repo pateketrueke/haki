@@ -1592,6 +1592,14 @@ log-ok@^0.1.1:
     ansi-green "^0.1.1"
     success-symbol "^0.1.0"
 
+log-pose@^0.1.0:
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/log-pose/-/log-pose-0.1.0.tgz#057c30d8b970d59a802c3e48fde5fe6f0bef2150"
+  dependencies:
+    chalk "^1.1.3"
+    cli-width "^2.1.0"
+    pretty-ms "^2.1.0"
+
 log-utils@^0.2.1:
   version "0.2.1"
   resolved "https://registry.yarnpkg.com/log-utils/-/log-utils-0.2.1.tgz#a4c217a0dd9a50515d9b920206091ab3d4e031cf"
