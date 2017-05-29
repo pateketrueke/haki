@@ -25,26 +25,33 @@ if (/^(?!-)[\w:-]+$/.test(argv[0])) {
   _task = argv.shift() || _task;
 }
 
-const $ = require('wargs')(argv, {
-  camelCase: true,
-  booleans: 'ODIGRCAVvdqfh',
-  aliases: {
-    O: 'no-install-opts',
-    D: 'no-install-dev',
-    I: 'no-install',
-    G: 'no-clone',
-    R: 'no-exec',
-    C: 'no-copy',
-    A: 'no-add',
-    V: 'verbose',
-    v: 'version',
-    d: 'debug',
-    q: 'quiet',
-    f: 'force',
-    g: 'gist',
-    h: 'help',
-  },
-});
+let $;
+
+try {
+  $ = require('wargs')(argv, {
+    camelCase: true,
+    booleans: 'ODIGRCAVvdqfh',
+    aliases: {
+      O: 'no-install-opts',
+      D: 'no-install-dev',
+      I: 'no-install',
+      G: 'no-clone',
+      R: 'no-exec',
+      C: 'no-copy',
+      A: 'no-add',
+      V: 'verbose',
+      v: 'version',
+      d: 'debug',
+      q: 'quiet',
+      f: 'force',
+      g: 'gist',
+      h: 'help',
+    },
+  });
+} catch (e) {
+  process.stderr.write(`\r\x1b[31m${e.message}\x1b[0m\n`);
+  process.exit(1);
+}
 
 const thisPkg = require('../package.json');
 
