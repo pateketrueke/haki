@@ -1,6 +1,6 @@
 {
   "name": "haki",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "main": "lib/index.js",
   "bin": "bin/haki",
   "description": "Small generator with will powers",
@@ -22,7 +22,7 @@
     "enquirer-prompt-input": "^0.4.0",
     "fs-extra": "^2.0.0",
     "glob": "^7.1.2",
-    "log-pose": "^0.2.0",
+    "log-pose": "^0.2.2",
     "mustache": "^2.3.0",
     "pluralize": "^3.1.0",
     "pretty-ms": "^2.1.0",
