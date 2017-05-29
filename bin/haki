@@ -27,7 +27,7 @@ if (/^(?!-)[\w:-]+$/.test(argv[0])) {
 
 const $ = require('wargs')(argv, {
   camelCase: true,
-  booleans: 'ODIGRCAvdqfh',
+  booleans: 'ODIGRCAVvdqfh',
   aliases: {
     O: 'no-install-opts',
     D: 'no-install-dev',
@@ -36,6 +36,7 @@ const $ = require('wargs')(argv, {
     R: 'no-exec',
     C: 'no-copy',
     A: 'no-add',
+    V: 'verbose',
     v: 'version',
     d: 'debug',
     q: 'quiet',
@@ -100,12 +101,24 @@ function showHelp(tasks) {
   Options:
     -g, ${util.padding('[--gist]', 15)} # Manage and download gists (e.g. -g 8c918388a28612778668aa66b5a8f406)
     -f, ${util.padding('[--force]', 15)} # Overwrite files that already exist
+    -f, ${util.padding('[--verbose]', 15)} # Display more information on logs
     -v, ${util.padding('[--version]', 15)} # Print version and quit
     -d, ${util.padding('[--debug]', 15)} # Print stack on error
     -q, ${util.padding('[--quiet]', 15)} # Supress status output
     -h, ${util.padding('[--help]', 15)} # Show this help message
 
 `);
+
+  /* istanbul ignore else */
+  if ($.flags.verbose) {
+    log.write('  Hakifiles:\n');
+
+    CACHE.forEach(file => {
+      log.write(`    ${file}\n`);
+    });
+
+    log.write('\n');
+  }
 }
 
 function gists(id) {
