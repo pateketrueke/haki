@@ -1,6 +1,6 @@
 {
   "name": "haki",
-  "version": "0.5.3",
+  "version": "0.6.0",
   "main": "lib/index.js",
   "bin": "bin/haki",
   "description": "Small generator with will powers",
