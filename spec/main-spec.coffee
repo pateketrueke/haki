@@ -133,12 +133,11 @@ describe 'Haki', ->
   it 'will export addHelper()', ->
     pkg = require('../package.json')
 
-    haki.addHelper 'pkg', () ->
-      (text) ->
-        keys = text.split('.')
-        obj = pkg
-        obj = obj[keys.shift()] while keys.length
-        obj
+    haki.addHelper 'pkg', (text) ->
+      keys = text.split('.')
+      obj = pkg
+      obj = obj[keys.shift()] while keys.length
+      obj
 
     expect(haki.getHelperList()).toContain 'pkg'
     expect(haki.renderString('{{pkg name}}')).toEqual 'haki'
@@ -377,11 +376,11 @@ describe 'Haki', ->
   it 'will clone given repos', (done) ->
     haki.runGenerator(
       actions: [
-        { dest: '.', clone: 'githubtraining/example-markdown' }
+        { dest: '.', clone: 'pateketrueke/empty' }
       ]
     ).then (result) ->
-      expect(readFile('README.md')).toContain 'sample-markdown'
-      expect(result.changes).toEqual [{ type: 'clone', repository: 'githubtraining/example-markdown' }]
+      expect(readFile('README.md')).toContain '# Empty'
+      expect(result.changes).toEqual [{ type: 'clone', repository: 'pateketrueke/empty' }]
       done()
 
   it 'will clean given sources', (done) ->
