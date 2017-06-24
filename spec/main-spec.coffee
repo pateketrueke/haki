@@ -27,15 +27,11 @@ tty_on = ->
 # TODO:
 haki = null
 
-_logger = (type, src, cb) -> cb()
-_logger.write = (x...) ->
-_logger.printf = (y...) ->
-
 describe 'Haki', ->
   beforeEach ->
     rimraf.sync generatedPath
     haki = new Haki
-      logger: _logger
+      log: false
       cwd: generatedPath
       stdin: ttys.stdin
       stdout: ttys.stdout
