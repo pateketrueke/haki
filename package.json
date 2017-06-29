@@ -36,7 +36,7 @@
     "prompt-rawlist": "^0.2.1",
     "readline-ui": "^0.1.2",
     "rimraf": "^2.6.1",
-    "wargs": "^0.7.0"
+    "wargs": "^0.7.1"
   },
   "devDependencies": {
     "codecov": "^2.2.0",
