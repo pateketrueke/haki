@@ -62,7 +62,6 @@ const fs = require('fs');
 const CONFIG = {};
 const CACHE = [];
 
-const _bin = path.basename(thisPkg.bin);
 const _gists = path.join(home, '.config', thisPkg.name, 'gists');
 
 /* istanbul ignore else */
@@ -93,12 +92,12 @@ function showError(e) {
 }
 
 function showHelp(tasks) {
-  log.write(`\r\n  Usage:\n    ${_bin} COMMAND [...]\n`);
+  log.write(`\r\n  Usage:\n    haki COMMAND [...]\n`);
 
   /* istanbul ignore else */
   if (tasks.length) {
     tasks.forEach(params => {
-      log.write(`    ${_bin} ${util.padding(params.gen, 20)}${
+      log.write(`    haki ${util.padding(params.gen, 20)}${
         params.value.description ? ['  # ', params.value.description].join('') : ''
       }\n`);
     });
