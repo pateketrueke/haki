@@ -165,7 +165,7 @@ describe 'Haki', ->
       abortOnFail: true
       actions: [{}]
     ).catch (error) ->
-      expect(error.message).toContain "Unsupported 'undefined' action"
+      expect(error.message).toContain "Unsupported '{}' action"
       done()
 
   it 'will fail when dest is missing', (done) ->
