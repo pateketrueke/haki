@@ -1,6 +1,6 @@
 {
   "name": "haki",
-  "version": "0.7.1",
+  "version": "0.8.0",
   "main": "lib/index.js",
   "bin": "bin/haki",
   "description": "Small generator with will powers",
@@ -22,7 +22,7 @@
     "enquirer-prompt-input": "^0.4.0",
     "fs-extra": "^2.1.2",
     "glob": "^7.1.2",
-    "log-pose": "^0.2.6",
+    "log-pose": "^0.3.0",
     "mustache": "^2.3.0",
     "pluralize": "^3.1.0",
     "pretty-ms": "^2.1.0",
@@ -47,29 +47,5 @@
     "istanbul": "^0.4.5",
     "jasmine-node": "2.0.0-beta4",
     "ttys": "^0.0.3"
-  },
-  "bundledDependencies": [
-    "chalk",
-    "change-case",
-    "clean-stack",
-    "download-github-repo",
-    "enquirer-prompt-input",
-    "fs-extra",
-    "glob",
-    "log-pose",
-    "mustache",
-    "pluralize",
-    "pretty-ms",
-    "prompt-checkbox",
-    "prompt-confirm",
-    "prompt-expand",
-    "prompt-list",
-    "prompt-password",
-    "prompt-question",
-    "prompt-radio",
-    "prompt-rawlist",
-    "readline-ui",
-    "rimraf",
-    "wargs"
-  ]
+  }
 }
