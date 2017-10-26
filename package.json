@@ -47,5 +47,29 @@
     "istanbul": "^0.4.5",
     "jasmine-node": "2.0.0-beta4",
     "ttys": "^0.0.3"
-  }
+  },
+  "bundledDependencies": [
+    "chalk",
+    "change-case",
+    "clean-stack",
+    "download-github-repo",
+    "enquirer-prompt-input",
+    "fs-extra",
+    "glob",
+    "log-pose",
+    "mustache",
+    "pluralize",
+    "pretty-ms",
+    "prompt-checkbox",
+    "prompt-confirm",
+    "prompt-expand",
+    "prompt-list",
+    "prompt-password",
+    "prompt-question",
+    "prompt-radio",
+    "prompt-rawlist",
+    "readline-ui",
+    "rimraf",
+    "wargs"
+  ]
 }
