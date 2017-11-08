@@ -98,6 +98,10 @@ describe 'Haki', ->
       tty_on()
       done()
 
+    .catch (e) ->
+      console.log 'E_GEN', e.message
+      done()
+
     sendLine '\n'
 
   it 'can prompt manually', (done) ->
@@ -137,7 +141,7 @@ describe 'Haki', ->
 
     expect(haki.getHelperList()).toContain 'pkg'
     expect(haki.renderString('{{pkg name}}')).toEqual 'haki'
-    expect(haki.renderString('{{pkg dependencies.chalk}}')).toEqual '^1.1.3'
+    expect(haki.renderString('{{pkg dependencies.chalk}}')).toEqual '^2.3.0'
 
   it 'will export renderString()', ->
     expect(haki.renderString('{{constantCase a}}', { a: 'b' })).toEqual 'B'
