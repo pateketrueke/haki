@@ -261,7 +261,7 @@ describe('Haki', () => {
         { copy: 'copy.txt', src: 'templates/test.txt' },
       ],
     }).then(shallFail).catch(error => {
-      expect(error.message).to.match(/File '.*test\.txt' cannot be copied/);
+      expect(error.message).to.match(/Source '.*test\.txt' cannot be copied/);
     });
   });
 
