@@ -23,7 +23,7 @@ let $;
 try {
   $ = require('wargs')(argv, {
     camelCase: true,
-    boolean: 'ODIGRCAVvdqfh',
+    boolean: 'ODIGRCAVvdqfhb',
     alias: {
       O: 'no-install-opts',
       D: 'no-install-dev',
@@ -40,6 +40,7 @@ try {
       e: 'entry',
       g: 'gist',
       h: 'help',
+      b: 'bare',
     },
   });
 } catch (e) {
@@ -282,38 +283,40 @@ function get(id) {
 }
 
 function run() {
-  log.printf('{% wait Finding Hakifile(s) ... %}\r\r');
+  if (!$.flags.bare) {
+    log.printf('{% wait Finding Hakifile(s) ... %}\r\r');
 
-  // built-in generators
-  require('./Hakifile')(haki);
+    // built-in generators
+    require('./Hakifile')(haki);
 
-  load(path.join(etc, '.config', thisPkg.name));
-  load(path.join(etc, `.${thisPkg.name}rc`));
+    load(path.join(etc, '.config', thisPkg.name));
+    load(path.join(etc, `.${thisPkg.name}rc`));
 
-  load(path.join(home, '.config', thisPkg.name));
-  load(path.join(home, `.${thisPkg.name}rc`));
+    load(path.join(home, '.config', thisPkg.name));
+    load(path.join(home, `.${thisPkg.name}rc`));
 
-  while (depth > 0) {
-    load(path.join(pwd, '.config', thisPkg.name));
-    load(path.join(pwd, `.${thisPkg.name}rc`));
-    load(pwd);
+    while (depth > 0) {
+      load(path.join(pwd, '.config', thisPkg.name));
+      load(path.join(pwd, `.${thisPkg.name}rc`));
+      load(pwd);
 
-    pwd = path.dirname(pwd);
+      pwd = path.dirname(pwd);
 
-    depth -= 1;
+      depth -= 1;
 
-    /* istanbul ignore else */
-    if (pwd === '/' || pwd === home) {
-      break;
+      /* istanbul ignore else */
+      if (pwd === '/' || pwd === home) {
+        break;
+      }
     }
+
+    // installed gists
+    Object.keys(gists()).forEach(id => {
+      load(path.join(_gists, id));
+    });
+
+    log.printf('{% log %s Hakifile%s found %}\r\n', CACHE.length, CACHE.length === 1 ? '' : 's');
   }
-
-  // installed gists
-  Object.keys(gists()).forEach(id => {
-    load(path.join(_gists, id));
-  });
-
-  log.printf('{% log %s Hakifile%s found %}\r\n', CACHE.length, CACHE.length === 1 ? '' : 's');
 
   /* istanbul ignore else */
   if ($.flags.help) {
@@ -329,7 +332,7 @@ function run() {
       })
       .then(() => Haki.closeAll());
   } else {
-    log.printf('{% fail Missing %s generator %}\r\n', _task);
+    log.printf('{% fail Missing `%s` generator %}\r\n', _task);
     util.die(1);
   }
 }
@@ -341,11 +344,13 @@ if ($.flags.version) {
   util.die();
 }
 
-log.printf('{% green Haki v%s %} {% gray (%s) %}\n', thisPkg.version, _task);
+if (!$.flags.bare) {
+  log.printf('{% green Haki v%s %} {% gray (%s in %s) %}\n', thisPkg.version, _task, process.env.NODE_ENV || '?');
+}
 
 process.on('exit', statusCode => {
   /* istanbul ignore else */
-  if (!statusCode) {
+  if (!statusCode && !$.flags.bare) {
     log.printf('\r\r{% end Done. %}\r\n');
   }
   Haki.closeAll();
