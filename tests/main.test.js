@@ -27,16 +27,24 @@ let haki;
 
 // safe wrappers
 const send = (...values) => {
-  const Enquirer = haki.getEnquirer();
+  const enquirer = haki.getEnquirer();
+
+  if (typeof values[0] === 'function') {
+    enquirer.on('prompt', values[0]);
+
+    return () => {
+      enquirer.off('prompt', values[0]);
+    };
+  }
 
   values.forEach(value => {
     const mock = p => {
-      Enquirer.off('prompt', mock);
+      enquirer.off('prompt', mock);
       p.value = value;
       p.submit();
     };
 
-    Enquirer.on('prompt', mock);
+    enquirer.on('prompt', mock);
   });
 };
 
@@ -68,120 +76,134 @@ describe('Haki', () => {
     });
   });
 
-  it('should validate input', async () => {
-    const pass = [];
+  describe('prompts', () => {
+    it('should validate input', async () => {
+      const pass = [];
 
-    haki.setGenerator('test', {
-      prompts: [{
-        name: 'value',
-        validate: value => {
-          const _value = value === '42' ? true : 'FAIL';
+      haki.setGenerator('test', {
+        prompts: [{
+          name: 'value',
+          validate: value => {
+            const _value = value === '42' ? true : 'FAIL';
 
-          // capture passed value
-          pass.push([value, _value]);
+            // capture passed value
+            pass.push([value, _value]);
 
-          return _value;
-        },
-      }],
+            return _value;
+          },
+        }],
+      });
+
+      send('x', '42');
+
+      const { values } = await run('test');
+
+      expect(pass).to.eql([
+        ['x', 'FAIL'],
+        ['42', true],
+      ]);
+
+      expect(values).to.eql({ value: '42' });
     });
 
-    send('x', '42');
+    it('will fail on missing generators', () => {
+      expect(() => haki.chooseGeneratorList()).to.throw('here are no registered generators');
+    });
 
-    const { values } = await run('test');
+    it('can validate given generators (if any)', async () => {
+      expect(() => haki.setGenerator()).to.throw(/Generator name must be a string, given .*/);
 
-    expect(pass).to.eql([
-      ['x', 'FAIL'],
-      ['42', true],
-    ]);
+      haki.setGenerator('test');
 
-    expect(values).to.eql({ value: '42' });
+      let error;
+
+      send('undef');
+
+      try {
+        await haki.chooseGeneratorList();
+      } catch (e) {
+        error = e;
+      }
+
+      expect(error).to.match(/The 'undef' generator does not exists/);
+    });
+
+    it('can prompt manually', async () => {
+      send('OK');
+
+      const value = await haki.prompt({ name: 'test' });
+
+      expect(value).to.eql({ test: 'OK' });
+    });
+
+    it('will pass all values', async () => {
+      let data = null;
+
+      haki.setGenerator('test', {
+        prompts: [
+          { name: 'a' },
+          { name: 'b' },
+        ],
+        actions: () => [v => { data = v; }],
+      });
+
+      const off = send(p => {
+        if (p.name === 'a') p.value = 'c';
+        if (p.name === 'b') p.value = 'd';
+        p.submit();
+      });
+
+      await run('test', { x: 'y', m: 'n' });
+
+      off();
+      expect(data).to.eql({
+        x: 'y',
+        a: 'c',
+        b: 'd',
+        m: 'n',
+      });
+    });
   });
 
-  it('will fail on missing generators', () => {
-    expect(() => haki.chooseGeneratorList()).to.throw('here are no registered generators');
+  it('can load files', () => {
+    haki.load(require.resolve('./fixtures/Hakifile'));
+    haki.load('../tests/fixtures/Hakifile.js');
+
+    const test = haki.getGeneratorList()[0];
+
+    expect(test.gen).to.eql('other');
+    expect(test.name).to.eql('Another generator test');
+    expect(test.value.basePath).to.eql(fixturesPath);
+    expect(test.value.description).to.eql('Another generator test');
   });
 
-  it('can validate given generators (if any)', async () => {
-    expect(() => haki.setGenerator()).to.throw(/Generator name must be a string, given .*/);
-
-    haki.setGenerator('test');
-
-    let error;
-
-    send('undef');
-
-    try {
-      await haki.chooseGeneratorList();
-    } catch (e) {
-      error = e;
-    }
-
-    expect(error).to.match(/The 'undef' generator does not exists/);
+  it('will export getPath()', () => {
+    expect(haki.getPath()).to.eql(generatedPath);
+    expect(haki.getPath('a/b.c')).to.eql(path.join(generatedPath, 'a/b.c'));
   });
 
-  it('can prompt manually', async () => {
-    send('OK');
+  it('will export addHelper()', () => {
+    const pkg = require('../package.json');
 
-    const value = await haki.prompt({ name: 'test' });
+    haki.addHelper('pkg', text => {
+      const keys = text.split('.');
+      let obj = pkg;
+      while (keys.length) {
+        obj = obj[keys.shift()];
+      }
+      return obj;
+    });
 
-    expect(value).to.eql({ test: 'OK' });
+    expect(haki.getHelperList()).to.contain('pkg');
+    expect(haki.renderString('{{pkg name}}')).to.eql('haki');
+    expect(haki.renderString('{{pkg dependencies.chalk}}')).to.eql('^2.3.0');
   });
 
-  // it('can load files', () => {
-  //   haki.load(require.resolve('./fixtures/Hakifile'));
-  //   haki.load('../tests/fixtures/Hakifile.js');
-
-  //   const test = haki.getGeneratorList()[0];
-
-  //   expect(test.gen).to.eql('other');
-  //   expect(test.name).to.eql('Another generator test');
-  //   expect(test.value.basePath).to.eql(fixturesPath);
-  //   expect(test.value.description).to.eql('Another generator test');
-  // });
-
-  // it('will export getPath()', () => {
-  //   expect(haki.getPath()).to.eql(generatedPath);
-  //   expect(haki.getPath('a/b.c')).to.eql(path.join(generatedPath, 'a/b.c'));
-  // });
-
-  // it('will export addHelper()', () => {
-  //   const pkg = require('../package.json');
-
-  //   haki.addHelper('pkg', text => {
-  //     const keys = text.split('.');
-  //     let obj = pkg;
-  //     while (keys.length) {
-  //       obj = obj[keys.shift()];
-  //     }
-  //     return obj;
-  //   });
-
-  //   expect(haki.getHelperList()).to.contain('pkg');
-  //   expect(haki.renderString('{{pkg name}}')).to.eql('haki');
-  //   expect(haki.renderString('{{pkg dependencies.chalk}}')).to.eql('^2.3.0');
-  // });
-
-  // it('will export renderString()', () => {
-  //   expect(haki.renderString('{{constantCase a}}', { a: 'b' })).to.eql('B');
-  //   expect(haki.renderString('{{singularize x}}', { x: 'posts' })).to.eql('post');
-  //   expect(haki.renderString('{{pluralize x}}', { x: 'post' })).to.eql('posts');
-  // });
-
-  // it('will pass all values', async () => {
-  //   let data = null;
-
-  //   haki.setGenerator('test', {
-  //     prompts: [
-  //       { name: 'a' },
-  //       { name: 'm' },
-  //     ],
-  //     actions: () => [v => { data = v; }],
-  //   });
-
-  //   sendLine('b\n');
-  //   await haki._runGenerator('test', { x: 'y', m: 'n' });
-  //   expect(data).to.eql({ x: 'y', a: 'b', m: 'n' });
-  // });
+  it('will export renderString()', () => {
+    expect(haki.renderString('{{constantCase a}}', { a: 'b' })).to.eql('B');
+    expect(haki.renderString('{{singularize x}}', { x: 'posts' })).to.eql('post');
+    expect(haki.renderString('{{pluralize x}}', { x: 'post' })).to.eql('posts');
+  });
 
   // it('will validate actions', async () => {
   //   await haki.runGenerator({
