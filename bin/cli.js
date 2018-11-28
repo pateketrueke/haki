@@ -95,7 +95,7 @@ function showHelp(tasks) {
   /* istanbul ignore else */
   if (tasks.length) {
     tasks.forEach(params => {
-      log.write(`    haki ${util.padding(params.gen, 20)}${
+      log.write(`    haki ${util.padding(params.name, 20)}${
         params.value.description ? ['  # ', params.value.description].join('') : ''
       }\n`);
     });
