@@ -171,8 +171,8 @@ describe('Haki', () => {
 
     const test = haki.getGeneratorList()[0];
 
-    expect(test.gen).to.eql('other');
-    expect(test.name).to.eql('Another generator test');
+    expect(test.name).to.eql('other');
+    expect(test.message).to.eql('Another generator test');
     expect(test.value.basePath).to.eql(fixturesPath);
     expect(test.value.description).to.eql('Another generator test');
   });
@@ -205,308 +205,310 @@ describe('Haki', () => {
     expect(haki.renderString('{{pluralize x}}', { x: 'post' })).to.eql('posts');
   });
 
-  // it('will validate actions', async () => {
-  //   await haki.runGenerator({
-  //     abortOnFail: true,
-  //     actions: [{}],
-  //   }).then(shallFail).catch(error => {
-  //     expect(error.message).to.contain("Unsupported '{}' action");
-  //   });
-  // });
+  describe('generators', () => {
+    it('will validate actions', async () => {
+      await haki.runGenerator({
+        abortOnFail: true,
+        actions: [{}],
+      }).then(shallFail).catch(error => {
+        expect(error.message).to.contain("Unsupported '{}' action");
+      });
+    });
 
-  // it('will fail when dest is missing', async () => {
-  //   await haki.runGenerator({
-  //     abortOnFail: true,
-  //     actions: [{ type: 'add' }],
-  //   }).then(shallFail).catch(error => {
-  //     expect(error.message).to.contain("Invalid dest, given 'undefined'");
-  //   });
-  // });
+    it('will fail when dest is missing', async () => {
+      await haki.runGenerator({
+        abortOnFail: true,
+        actions: [{ type: 'add' }],
+      }).then(shallFail).catch(error => {
+        expect(error.message).to.contain("Invalid dest, given 'undefined'");
+      });
+    });
 
-  // it('will fail when src is missing', async () => {
-  //   await haki.runGenerator({
-  //     abortOnFail: true,
-  //     actions: [{ type: 'copy', dest: 'a.txt' }],
-  //   }).then(shallFail).catch(error => {
-  //     expect(error.message).to.contain("Invalid src, given 'undefined'");
-  //   });
-  // });
+    it('will fail when src is missing', async () => {
+      await haki.runGenerator({
+        abortOnFail: true,
+        actions: [{ type: 'copy', dest: 'a.txt' }],
+      }).then(shallFail).catch(error => {
+        expect(error.message).to.contain("Invalid src, given 'undefined'");
+      });
+    });
 
-  // it('will fail when pattern is missing', async () => {
-  //   await haki.runGenerator({
-  //     abortOnFail: true,
-  //     actions: [{ modify: 'a.txt' }],
-  //   }).then(shallFail).catch(error => {
-  //     expect(error.message).to.contain("Invalid pattern, given 'undefined'");
-  //   });
-  // });
+    it('will fail when pattern is missing', async () => {
+      await haki.runGenerator({
+        abortOnFail: true,
+        actions: [{ modify: 'a.txt' }],
+      }).then(shallFail).catch(error => {
+        expect(error.message).to.contain("Invalid pattern, given 'undefined'");
+      });
+    });
 
-  // it('will fail on unsupported prompts', async () => {
-  //   await haki.runGenerator({
-  //     abortOnFail: true,
-  //     prompts: [{ type: 'x' }],
-  //   }).then(shallFail).catch(error => {
-  //     expect(error.message).to.contain("Unsupported 'x' prompt");
-  //   });
-  // });
+    it('will fail on unsupported prompts', async () => {
+      await haki.runGenerator({
+        abortOnFail: true,
+        prompts: [{ type: 'x' }],
+      }).then(shallFail).catch(error => {
+        expect(error.message).to.contain('Prompt "x" is not registered');
+      });
+    });
 
-  // it('will fail on broken actions', async () => {
-  //   await haki.runGenerator({
-  //     abortOnFail: true,
-  //     actions: [
-  //       () => { throw new Error('FAIL'); },
-  //     ],
-  //   }).then(shallFail).catch(error => {
-  //     expect(error.message).to.contain('FAIL');
-  //   });
-  // });
+    it('will fail on broken actions', async () => {
+      await haki.runGenerator({
+        abortOnFail: true,
+        actions() {
+          throw new Error('FAIL');
+        },
+      }).then(shallFail).catch(error => {
+        expect(error.message).to.contain('FAIL');
+      });
+    });
 
-  // it('will fail on broken prompts', async () => {
-  //   sendLine('y\n');
-  //   await haki._runGenerator({
-  //     abortOnFail: true,
-  //     prompts: [{
-  //       name: 'x',
-  //       message: 'Say something:',
-  //       validate: () => { throw new Error('FAIL'); },
-  //     }],
-  //   }).then(shallFail).catch(error => {
-  //     expect(error.message).to.contain('FAIL');
-  //   });
-  // });
+    // FIXME: enquirer does not catch errors inside validators?
+    it.skip('will fail on broken prompts', async () => {
+      send('y');
+      await haki.runGenerator({
+        abortOnFail: true,
+        prompts: [{
+          name: 'x',
+          message: 'Say something:',
+          validate: () => { throw new Error('FAIL'); },
+        }],
+      }).then(shallFail).catch(error => {
+        expect(error.message).to.contain('FAIL');
+      });
+    });
 
-  // it('will report on copy duplicates', async () => {
-  //   sendLine('x\n');
-  //   await haki._runGenerator({
-  //     abortOnFail: true,
-  //     basePath: fixturesPath,
-  //     actions: [
-  //       { add: 'copy.txt', src: 'templates/sample.txt' },
-  //       { copy: 'copy.txt', src: 'templates/test.txt' },
-  //     ],
-  //   }).then(shallFail).catch(error => {
-  //     expect(error.message).to.match(/Source '.*test\.txt' cannot be copied/);
-  //   });
-  // });
+    // FIXME: how to provide a value from a list?
+    it.skip('will report on copy duplicates', async () => {
+      await haki.runGenerator({
+        abortOnFail: true,
+        basePath: fixturesPath,
+        actions: [
+          { add: 'dest/test.txt', templateFile: 'templates/sample.txt' },
+          { copy: 'dest', src: 'templates/test.txt' },
+        ],
+      }).then(shallFail).catch(error => {
+        expect(error.message).to.match(/Source '.*test\.txt' cannot be copied/);
+      });
+    });
 
-  // it('will report missing sources', async () => {
-  //   sendLine('x\n');
-  //   await haki.runGenerator({
-  //     abortOnFail: true,
-  //     actions: [{ type: 'copy', src: 'a.txt', dest: 'b.txt' }],
-  //   }).then(shallFail).catch(error => {
-  //     expect(error.message).to.contain("Source 'a.txt' does not exists");
-  //   });
-  // });
+    // FIXME: somehow is not failing...
+    it.skip('will report missing sources', async () => {
+      await haki.runGenerator({
+        abortOnFail: true,
+        actions: [{ type: 'copy', src: 'a.txt', dest: 'b.txt' }],
+      }).then(shallFail).catch(error => {
+        expect(error.message).to.contain("Source 'a.txt' does not exists");
+      });
+    });
 
-  // it('will report unsupported actions', async () => {
-  //   sendLine('x\n');
-  //   await haki.runGenerator({
-  //     abortOnFail: true,
-  //     actions: [{ type: 'dunno', dest: 'a.txt' }],
-  //   }).then(shallFail).catch(error => {
-  //     expect(error.message).to.contain("Unsupported 'dunno' action");
-  //   });
-  // });
+    it('will report unsupported actions', async () => {
+      await haki.runGenerator({
+        abortOnFail: true,
+        actions: [{ type: 'dunno', dest: 'a.txt' }],
+      }).then(shallFail).catch(error => {
+        expect(error.message).to.contain("Unsupported 'dunno' action");
+      });
+    });
 
-  // it('will report when abortOnFail is true', async () => {
-  //   sendLine('x\n');
-  //   await haki.runGenerator({
-  //     abortOnFail: false,
-  //     actions: [{ abortOnFail: true, dest: 'a.txt' }],
-  //   }).then(result => {
-  //     expect(result.error.message).to.match(/Unsupported '.*?' action/);
-  //     expect(result.failures[0]).to.match(/Unsupported '.*?' action/);
-  //   });
-  // });
+    it('will report when abortOnFail is true', async () => {
+      await haki.runGenerator({
+        abortOnFail: false,
+        actions: [{ abortOnFail: true, dest: 'a.txt' }],
+      }).then(result => {
+        expect(result.error.message).to.match(/Unsupported '.*?' action/);
+        expect(result.failures[0]).to.match(/Unsupported '.*?' action/);
+      });
+    });
 
-  // it('will report missing commands', async () => {
-  //   await haki.runGenerator({
-  //     abortOnFail: true,
-  //     actions: [{ type: 'exec' }],
-  //   }).then(shallFail).catch(error => {
-  //     expect(error.message).to.contain("Invalid command, given 'undefined'");
-  //   });
-  // });
+    it('will report missing commands', async () => {
+      await haki.runGenerator({
+        abortOnFail: true,
+        actions: [{ type: 'exec' }],
+      }).then(shallFail).catch(error => {
+        expect(error.message).to.contain("Invalid command, given 'undefined'");
+      });
+    });
 
-  // it('will execute commands', async () => {
-  //   await haki.runGenerator({
-  //     actions: [{ exec: 'echo ok' }],
-  //   }).then(result => {
-  //     expect(result.changes[0].stdOut).to.eql('ok\n');
-  //   });
-  // });
+    it('will execute commands', async () => {
+      await haki.runGenerator({
+        actions: [{ exec: 'echo ok' }],
+      }).then(result => {
+        expect(result.changes[0].stdOut).to.eql('ok\n');
+      });
+    });
 
-  // it('will report errors on executing commands', async () => {
-  //   await haki.runGenerator({
-  //     abortOnFail: true,
-  //     actions: [{ exec: 'not_defined_cmd' }],
-  //   }).then(shallFail).catch(error => {
-  //     expect(error.message).to.match(/not_defined_cmd.*not found/);
-  //   });
-  // });
+    it('will report errors on executing commands', async () => {
+      await haki.runGenerator({
+        abortOnFail: true,
+        actions: [{ exec: 'not_defined_cmd' }],
+      }).then(shallFail).catch(error => {
+        expect(error.message).to.match(/not_defined_cmd.*not found/);
+      });
+    });
+  });
 
-  // it('will install all dependencies', async () => {
-  //   const result = await haki.runGenerator({
-  //     actions: [
-  //       {
-  //         add: 'package.json',
-  //         content: `
-  //           {
-  //             "name": "example",
-  //             "dependencies": {
-  //               "noop": "*"
-  //             }
-  //           }
-  //         `,
-  //       },
-  //       { install: [], dest: '.' },
-  //     ],
-  //   });
+  it('will install all dependencies', async () => {
+    const result = await haki.runGenerator({
+      actions: [
+        {
+          add: 'package.json',
+          content: `
+            {
+              "name": "example",
+              "dependencies": {
+                "noop": "*"
+              }
+            }
+          `,
+        },
+        { install: [], dest: '.' },
+      ],
+    });
 
-  //   expect(readFile('node_modules/noop/package.json')).to.match(/"noop(?:@.+?)?"/);
-  //   expect(result.changes[1]).to.eql({ type: 'install', dependencies: [] });
+    expect(readFile('node_modules/noop/package.json')).to.match(/"noop(?:@.+?)?"/);
+    expect(result.changes[1]).to.eql({ type: 'install', dependencies: [] });
 
-  //   rimraf.sync(path.join(fixturesPath, 'node_modules'));
-  // }).timeout(10000);
+    rimraf.sync(path.join(fixturesPath, 'node_modules'));
+  }).timeout(10000);
 
-  // it('will install given dependencies', async () => {
-  //   await haki.runGenerator({
-  //     actions: [
-  //       { add: 'package.json', content: '{ "name": "example" }' },
-  //       { install: ['noop'], dest: '.' },
-  //     ],
-  //   }).then(result => {
-  //     expect(readFile('node_modules/noop/package.json')).to.match(/"noop(?:@.+?)?"/);
-  //     expect(result.changes[1]).to.eql({ type: 'install', dependencies: ['noop'] });
-  //     rimraf.sync(path.join(fixturesPath, 'node_modules'));
-  //   });
-  // }).timeout(10000);
+  it('will install given dependencies', async () => {
+    await haki.runGenerator({
+      actions: [
+        { add: 'package.json', content: '{ "name": "example" }' },
+        { install: ['noop'], dest: '.' },
+      ],
+    }).then(result => {
+      expect(readFile('node_modules/noop/package.json')).to.match(/"noop(?:@.+?)?"/);
+      expect(result.changes[1]).to.eql({ type: 'install', dependencies: ['noop'] });
+      rimraf.sync(path.join(fixturesPath, 'node_modules'));
+    });
+  }).timeout(10000);
 
-  // it('will modify given files', async () => {
-  //   sendLine('y\n');
-  //   await haki._runGenerator({
-  //     actions: [
-  //       { add: 'example.txt', content: 'foo' },
-  //       { modify: 'example.txt', pattern: /$/, content: '$&\nbar' },
-  //     ],
-  //   }).then(result => {
-  //     expect(readFile('example.txt')).to.eql('foo\nbar');
-  //     expect(result.changes).to.eql([
-  //       { type: 'add', dest: 'example.txt' },
-  //       { type: 'modify', dest: 'example.txt' },
-  //     ]);
-  //   });
-  // });
+  it('will modify given files', async () => {
+    await haki.runGenerator({
+      actions: [
+        { add: 'example.txt', content: 'foo' },
+        { modify: 'example.txt', pattern: /$/, content: '$&\nbar' },
+      ],
+    }).then(result => {
+      expect(readFile('example.txt')).to.eql('foo\nbar');
+      expect(result.changes).to.eql([
+        { type: 'add', dest: 'example.txt' },
+        { type: 'modify', dest: 'example.txt' },
+      ]);
+    });
+  });
 
-  // it('will extend json objects', async () => {
-  //   let test = null;
+  it('will extend json objects', async () => {
+    let test = null;
 
-  //   sendLine('y\n');
+    const result = await haki.runGenerator({
+      actions: [
+        { add: 'example.json', content: '{"foo":"bar"}' },
+        {
+          extend: 'example.json',
+          callback: data => {
+            data.baz = 'buzz';
+            test = data;
+          },
+        },
+      ],
+    });
 
-  //   const result = await haki._runGenerator({
-  //     actions: [
-  //       { add: 'example.json', content: '{"foo":"bar"}' },
-  //       {
-  //         extend: 'example.json',
-  //         callback: data => {
-  //           data.baz = 'buzz';
-  //           test = data;
-  //         },
-  //       },
-  //     ],
-  //   });
+    expect(readFile('example.json')).to.contain('{\n  "foo": "bar",\n  "baz": "buzz"\n}');
 
-  //   expect(readFile('example.json')).to.contain('{\n  "foo": "bar",\n  "baz": "buzz"\n}');
+    expect(result.changes).to.eql([
+      { type: 'add', dest: 'example.json' },
+      { type: 'extend', dest: 'example.json' },
+    ]);
 
-  //   expect(result.changes).to.eql([
-  //     { type: 'add', dest: 'example.json' },
-  //     { type: 'extend', dest: 'example.json' },
-  //   ]);
+    expect(test).to.eql({
+      foo: 'bar',
+      baz: 'buzz',
+    });
+  });
 
-  //   expect(test).to.eql({
-  //     foo: 'bar',
-  //     baz: 'buzz',
-  //   });
-  // });
+  it('will clone given repos', async () => {
+    await haki.runGenerator({
+      actions: [
+        { dest: '.', clone: 'pateketrueke/empty' },
+      ],
+    }).then(result => {
+      expect(readFile('README.md')).to.contain('# Empty');
+      expect(result.changes).to.eql([{ type: 'clone', repository: 'pateketrueke/empty' }]);
+    });
+  });
 
-  // it('will clone given repos', async () => {
-  //   await haki.runGenerator({
-  //     actions: [
-  //       { dest: '.', clone: 'pateketrueke/empty' },
-  //     ],
-  //   }).then(result => {
-  //     expect(readFile('README.md')).to.contain('# Empty');
-  //     expect(result.changes).to.eql([{ type: 'clone', repository: 'pateketrueke/empty' }]);
-  //   });
-  // });
+  // FIXME: somehow is not failing...
+  it.skip('will clean given sources', async () => {
+    await haki.runGenerator({
+      actions: [
+        { add: 'rm_dir/a.txt', content: 'x' },
+        { add: 'rm_dir/b.txt', content: 'y' },
+        { clean: 'rm_dir/a.txt' },
+      ],
+    });
 
-  // it('will clean given sources', async () => {
-  //   await haki.runGenerator({
-  //     actions: [
-  //       { add: 'rm_dir/a.txt', content: 'x' },
-  //       { add: 'rm_dir/b.txt', content: 'y' },
-  //       { clean: 'rm_dir/a.txt' },
-  //     ],
-  //   });
+    expect(() => readFile('rm_dir/a.txt')).to.throw();
+    expect(readFile('rm_dir/b.txt')).to.eql('y');
+  });
 
-  //   expect(() => readFile('rm_dir/a.txt')).to.throw();
-  //   expect(readFile('rm_dir/b.txt')).to.eql('y');
-  // });
+  it('will validate given input', async () => {
+    await haki.runGenerator({
+      validate: {
+        sample: x => (x === 'yes' || 'nope'),
+      },
+      actions: [{
+        exec: 'echo ok',
+      }],
+    }, { sample: 'x' }).catch(error => {
+      expect(error.message).to.eql('nope');
+    });
+  });
 
-  // it('will validate given input', async () => {
-  //   await haki.runGenerator({
-  //     validate: {
-  //       sample: x => (x === 'yes' || 'nope'),
-  //     },
-  //     actions: [{
-  //       exec: 'echo ok',
-  //     }],
-  //   }, { sample: 'x' }).catch(error => {
-  //     expect(error.message).to.eql('nope');
-  //   });
-  // });
+  it('will use default validators', async () => {
+    let test = null;
 
-  // it('will set default validators', async () => {
-  //   let test = null;
+    send('x');
 
-  //   sendLine('yes\n');
+    const { values } = await haki.runGenerator({
+      validate: {
+        sample: v => {
+          test = v;
+          return v === 'yes' || 'nope';
+        },
+      },
+      prompts: [{
+        name: 'sample',
+      }],
+    }, {
+      sample: 'yes',
+    });
 
-  //   await haki._runGenerator({
-  //     validate: {
-  //       sample: x => {
-  //         test = x;
-  //         return x === 'yes' || 'nope';
-  //       },
-  //     },
-  //     prompts: [{
-  //       name: 'sample',
-  //     }],
-  //   });
+    expect(test).to.eql('yes');
+    expect(values).to.eql({ sample: 'x' });
+  });
 
-  //   expect(test).to.eql('yes');
-  // });
-
-  // it('will render given sources', async () => {
-  //   await haki.runGenerator({
-  //     actions: [{
-  //       add: 'foo.txt',
-  //       content: '{{value}}',
-  //     }, {
-  //       add: 'bar.txt',
-  //       content: '{{value}}',
-  //     }, {
-  //       render: 'bar.txt',
-  //     }],
-  //   }, {
-  //     value: 'foo',
-  //   }).then(result => {
-  //     expect(readFile('foo.txt')).to.eql('{{value}}');
-  //     expect(readFile('bar.txt')).to.eql('foo');
-  //     expect(result.changes).to.eql([
-  //       { type: 'add', dest: 'foo.txt' },
-  //       { type: 'add', dest: 'bar.txt' },
-  //     ]);
-  //   });
-  // });
+  it('will render given sources', async () => {
+    await haki.runGenerator({
+      actions: [{
+        add: 'foo.txt',
+        content: '{{value}}',
+      }, {
+        add: 'bar.txt',
+        content: '{{value}}',
+      }, {
+        render: 'bar.txt',
+      }],
+    }, {
+      value: 'foo',
+    }).then(result => {
+      expect(readFile('foo.txt')).to.eql('{{value}}');
+      expect(readFile('bar.txt')).to.eql('foo');
+      expect(result.changes).to.eql([
+        { type: 'add', dest: 'foo.txt' },
+        { type: 'add', dest: 'bar.txt' },
+      ]);
+    });
+  });
 });
