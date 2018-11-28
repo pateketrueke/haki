@@ -6,6 +6,13 @@
   "description": "Small generator with will powers",
   "author": "Alvaro Cabrera <pateketrueke@gmail.com>",
   "license": "MIT",
+  "keywords": [
+    "scaffolding",
+    "templates",
+    "codegen",
+    "prompt",
+    "cli"
+  ],
   "files": [
     "bin/*",
     "lib/*.js"
@@ -30,22 +37,13 @@
     "change-case": "^3.0.1",
     "clean-stack": "^2.0.0",
     "download-github-repo": "^0.1.4",
-    "enquirer-prompt-input": "^0.4.0",
+    "enquirer": "^2.0.8",
     "fs-extra": "^7.0.1",
     "glob": "^7.1.2",
     "log-pose": "^0.3.0",
     "mustache": "^3.0.1",
     "pluralize": "^7.0.0",
     "pretty-ms": "^4.0.0",
-    "prompt-checkbox": "^2.2.0",
-    "prompt-confirm": "^2.0.4",
-    "prompt-expand": "^1.0.1",
-    "prompt-list": "^3.2.0",
-    "prompt-password": "^1.2.0",
-    "prompt-question": "^5.0.2",
-    "prompt-radio": "^1.2.1",
-    "prompt-rawlist": "^2.0.1",
-    "readline-ui": "^2.2.3",
     "rimraf": "^2.6.2",
     "wargs": "^0.8.1"
   },

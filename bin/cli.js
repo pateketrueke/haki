@@ -329,8 +329,7 @@ function run() {
       .catch(e => {
         log.printf('{% fail %s %}\r\n', ($.flags.debug && cleanStack(e.stack)) || e.message);
         util.die(1);
-      })
-      .then(() => Haki.closeAll());
+      });
   } else {
     log.printf('{% fail Missing `%s` generator %}\r\n', _task);
     util.die(1);
@@ -353,7 +352,6 @@ process.on('exit', statusCode => {
   if (!statusCode && !$.flags.bare) {
     log.printf('\r\r{% end Done. %}\r\n');
   }
-  Haki.closeAll();
   util.die();
 });
 
