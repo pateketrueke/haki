@@ -252,8 +252,6 @@ describe('Haki', () => {
   it('will use default validators', async () => {
     let test = null;
 
-    send('x');
-
     const { values } = await haki.runGenerator({
       validate: {
         sample: v => {
@@ -269,7 +267,7 @@ describe('Haki', () => {
     });
 
     expect(test).to.eql('yes');
-    expect(values).to.eql({ sample: 'x' });
+    expect(values).to.eql({ sample: 'yes' });
   });
 
   it('will render given sources', async () => {
