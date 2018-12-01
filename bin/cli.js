@@ -23,7 +23,7 @@ let $;
 try {
   $ = require('wargs')(argv, {
     camelCase: true,
-    boolean: 'ODIGRCAVvdqfhb',
+    boolean: 'ODIGRCAVvdqfhba',
     alias: {
       O: 'no-install-opts',
       D: 'no-install-dev',
@@ -41,6 +41,7 @@ try {
       g: 'gist',
       h: 'help',
       b: 'bare',
+      a: 'ask',
     },
   });
 } catch (e) {
@@ -96,7 +97,7 @@ function showHelp(tasks) {
   if (tasks.length) {
     tasks.forEach(params => {
       log.write(`    haki ${util.padding(params.name, 20)}${
-        params.value.description ? ['  # ', params.value.description].join('') : ''
+        params.message ? ['  # ', params.message].join('') : ''
       }\n`);
     });
   }
@@ -110,6 +111,7 @@ function showHelp(tasks) {
     -d, ${util.padding('[--debug]', 15)} # Print stack on error
     -q, ${util.padding('[--quiet]', 15)} # Supress status output
     -b, ${util.padding('[--bare]', 15)} # Remove additional logs
+    -b, ${util.padding('[--ask]', 15)} # Choose from registered tasks
     -h, ${util.padding('[--help]', 15)} # Show this help message
 
 `);
@@ -219,7 +221,7 @@ function load(filepath) {
       }
     }
   } catch (e) {
-    log.printf('{% fail Error in %s: %s %}\r\n', filepath, ($.flags.debug && cleanStack(e.stack)) || e.message);
+    showError(e);
     util.die(1);
   }
 }
@@ -328,7 +330,7 @@ function run() {
   if (haki.hasGenerator(_task)) {
     haki.runGenerator(_task, util.extend({}, $.data, $.params, CONFIG))
       .catch(e => {
-        log.printf('{% fail %s %}\r\n', ($.flags.debug && cleanStack(e.stack)) || e.message);
+        showError(e);
         util.die(1);
       });
   } else {
@@ -364,6 +366,12 @@ if ($.flags.gist) {
   } else {
     list();
   }
+} else if ($.flags.ask) {
+  haki.chooseGeneratorList()
+    .catch(e => {
+      showError(e);
+      util.die(1);
+    });
 } else {
   run();
 }
