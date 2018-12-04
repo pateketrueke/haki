@@ -117,10 +117,8 @@ describe('Haki', () => {
 
       let error;
 
-      send('undef');
-
       try {
-        await haki.chooseGeneratorList();
+        await haki.runGenerator('undef');
       } catch (e) {
         error = e;
       }
@@ -173,8 +171,6 @@ describe('Haki', () => {
 
     expect(test.name).to.eql('other');
     expect(test.message).to.eql('Another generator test');
-    expect(test.value.basePath).to.eql(fixturesPath);
-    expect(test.value.description).to.eql('Another generator test');
   });
 
   it('will export getPath()', () => {
