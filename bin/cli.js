@@ -104,7 +104,7 @@ function showHelp(tasks) {
 
   log.write(`
   Options:
-    -g, ${util.padding('[--gist]', 15)} # Manage and download gists (e.g. -g 8c918388a28612778668aa66b5a8f406)
+    -g, ${util.padding('[--gist]', 15)} # Manage and download gists (e.g. -g 7f473b462ca7ecd3f648853ba6e44e2a)
     -f, ${util.padding('[--force]', 15)} # Overwrite files that already exist
     -f, ${util.padding('[--verbose]', 15)} # Display more information on logs
     -v, ${util.padding('[--version]', 15)} # Print version and quit
