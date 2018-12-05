@@ -40,7 +40,7 @@
     "enquirer": "^2.0.8",
     "fs-extra": "^7.0.1",
     "glob": "^7.1.2",
-    "log-pose": "^0.3.0",
+    "log-pose": "^0.3.4",
     "mustache": "^3.0.1",
     "pluralize": "^7.0.0",
     "pretty-ms": "^4.0.0",
