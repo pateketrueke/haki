@@ -111,7 +111,7 @@ function showHelp(tasks) {
     -d, ${util.padding('[--debug]', 15)} # Print stack on error
     -q, ${util.padding('[--quiet]', 15)} # Supress status output
     -b, ${util.padding('[--bare]', 15)} # Remove additional logs
-    -b, ${util.padding('[--ask]', 15)} # Choose from registered tasks
+    -a, ${util.padding('[--ask]', 15)} # Choose from registered tasks
     -h, ${util.padding('[--help]', 15)} # Show this help message
 
 `);
