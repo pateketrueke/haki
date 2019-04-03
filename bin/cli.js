@@ -61,6 +61,8 @@ const Haki = require('../lib');
 const util = require('../lib/utils');
 const thisPkg = require('../package.json');
 
+const RE_GITHUB = /^[^\/]+\/[^\/]+$/;
+
 const CONFIG = {};
 const CACHE = [];
 
@@ -325,6 +327,41 @@ function run() {
   if ($.flags.help) {
     showHelp(haki.getGeneratorList());
     util.die();
+  }
+
+  if ($._.length && _task === 'default') {
+    if ($._[0] && RE_GITHUB.test($._[0])) {
+      const [src, dest] = $._;
+
+      if (!dest) {
+        showError(new Error('Missing destination, add --help for usage info'));
+        util.die(1);
+      }
+
+      if ($.flags.force !== true && fs.existsSync(dest) && fs.readdirSync(dest).length) {
+        showError(new Error('Destination is not empty, use --force to overwrite'));
+        util.die(1);
+      }
+
+      log(false, `Fetching ${src} from GitHub ...`, () => {
+        return new Promise((resolve, reject) => {
+          require('download-github-repo')(src, path.resolve(dest), err => {
+            if (err) {
+              reject(new Error(`Not found https://github.com/${src}`));
+            } else {
+              resolve();
+            }
+          });
+        });
+      }).catch(e => {
+        showError(e);
+        util.die(1);
+      });
+      return;
+    }
+
+    log.printf('{% fail invalid input, add --help for usage info %}\r\n');
+    util.die(1);
   }
 
   if (haki.hasGenerator(_task)) {

@@ -10,6 +10,7 @@ const HAKI_HINTS = [
   '`haki --no-exec` will skip from executing commands',
   '`haki --no-clone` will skip from cloning repositories',
   '`haki --no-install` will skip from installing dependencies',
+  '`haki user/repo` will clone a GitHub repository into any given destination',
 ];
 
 const HAKI_TXT = `
