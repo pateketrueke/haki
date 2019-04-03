@@ -129,17 +129,19 @@ Say, we are at `$HOME/path/to/project/name` so paths below are used:
 
 - `/etc/.config/haki`
 - `/etc/.hakirc`
+- `/etc/Hakifile.js`
 - `$HOME/.config/haki`
 - `$HOME/.hakirc`
-- `$HOME/username/project/name/.config/haki`
-- `$HOME/username/project/name/.hakirc`
-- `$HOME/username/project/name`
-- `$HOME/username/project/.config/haki`
-- `$HOME/username/project/.hakirc`
-- `$HOME/username/project`
-- `$HOME/username/.config/haki`
-- `$HOME/username/.hakirc`
-- `$HOME/username`
+- `$HOME/Hakifile.js`
+- `$HOME/path/to/project/name/.config/haki`
+- `$HOME/path/to/project/name/.hakirc`
+- `$HOME/path/to/project/name/Hakifile.js`
+- `$HOME/path/to/project/.config/haki`
+- `$HOME/path/to/project/.hakirc`
+- `$HOME/path/to/project/Hakifile.js`
+- `$HOME/path/to/.config/haki`
+- `$HOME/path/to/.hakirc`
+- `$HOME/path/to/Hakifile.js`
 - etc. &mdash; scanning stops when `/` or `$HOME` path is reached.
 
 ## Gist usage
@@ -151,3 +153,11 @@ $ haki -g [SHA1]
 ```
 
 List available gists with `haki -g` only.
+
+## GitHub usage
+
+Download github repositories with:
+
+```bash
+$ haki <USER/REPO> <DEST>
+```

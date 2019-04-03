@@ -296,9 +296,11 @@ function run() {
 
     load(path.join(etc, '.config', thisPkg.name));
     load(path.join(etc, `.${thisPkg.name}rc`));
+    load(etc);
 
     load(path.join(home, '.config', thisPkg.name));
     load(path.join(home, `.${thisPkg.name}rc`));
+    load(home);
 
     while (depth > 0) {
       load(path.join(pwd, '.config', thisPkg.name));
