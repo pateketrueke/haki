@@ -53,8 +53,10 @@
     "eslint": "^5.5.0",
     "eslint-config-airbnb-base": "^13.1.0",
     "eslint-plugin-import": "^2.14.0",
-    "mocha": "^6.0.2",
+    "js-yaml": ">=3.13.1",
+    "mocha": "^6.2.2",
     "nyc": "^13.1.0",
+    "set-value": ">=2.0.1",
     "ttys": "^0.0.3"
   }
 }
