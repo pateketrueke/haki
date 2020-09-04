@@ -61,7 +61,7 @@ const Haki = require('../lib');
 const util = require('../lib/utils');
 const thisPkg = require('../package.json');
 
-const RE_GITHUB = /^[^\/]+\/[^\/]+$/;
+const RE_GITHUB = /^[^/]+\/[^/]+$/;
 
 const CONFIG = {};
 const CACHE = [];
