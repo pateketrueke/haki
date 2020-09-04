@@ -26,26 +26,12 @@ const ttyOn = () => {
 let haki;
 
 // safe wrappers
-const send = (...values) => {
-  const enquirer = haki.getEnquirer();
-
-  if (typeof values[0] === 'function') {
-    enquirer.on('prompt', values[0]);
-
-    return () => {
-      enquirer.off('prompt', values[0]);
-    };
+const send = (values) => {
+  if (Array.isArray(values)) {
+    haki.getPrompts().inject(values);
+  } else {
+    haki.getPrompts().override(values);
   }
-
-  values.forEach(value => {
-    const mock = p => {
-      enquirer.off('prompt', mock);
-      p.value = value;
-      p.submit();
-    };
-
-    enquirer.on('prompt', mock);
-  });
 };
 
 const run = (...args) => {
@@ -76,36 +62,17 @@ describe('Haki', () => {
     });
   });
 
-  describe('prompts', () => {
-    it('should validate input', async () => {
-      const pass = [];
+  describe('prompt', () => {
+    it('can prompt manually', async () => {
+      send(['OK']);
 
-      haki.setGenerator('test', {
-        prompts: [{
-          name: 'value',
-          validate: value => {
-            const _value = value === '42' ? true : 'FAIL';
+      const value = await haki.prompt({ name: 'test' });
 
-            // capture passed value
-            pass.push([value, _value]);
-
-            return _value;
-          },
-        }],
-      });
-
-      send('x', '42');
-
-      const { values } = await run('test');
-
-      expect(pass).to.eql([
-        ['x', 'FAIL'],
-        ['42', true],
-      ]);
-
-      expect(values).to.eql({ value: '42' });
+      expect(value).to.eql({ test: 'OK' });
     });
+  });
 
+  describe('prompts', () => {
     it('will fail on missing generators', () => {
       expect(() => haki.chooseGeneratorList()).to.throw('here are no registered generators');
     });
@@ -126,12 +93,28 @@ describe('Haki', () => {
       expect(error).to.match(/The 'undef' generator does not exists/);
     });
 
-    it('can prompt manually', async () => {
-      send('OK');
+    it('should prompt from tasks', async () => {
+      const pass = [];
 
-      const value = await haki.prompt({ name: 'test' });
+      haki.setGenerator('test', {
+        prompts: [{
+          name: 'value',
+          validate: value => {
+            const _value = value === '42' ? true : 'FAIL';
 
-      expect(value).to.eql({ test: 'OK' });
+            // capture passed value
+            pass.push([value, _value]);
+
+            return _value;
+          },
+        }],
+      });
+
+      send(['42']);
+
+      const { values } = await run('test');
+
+      expect(values).to.eql({ value: '42' });
     });
 
     it('will pass all values', async () => {
@@ -145,15 +128,10 @@ describe('Haki', () => {
         actions: () => [v => { data = v; }],
       });
 
-      const off = send(p => {
-        if (p.name === 'a') p.value = 'c';
-        if (p.name === 'b') p.value = 'd';
-        p.submit();
-      });
+      send({ a: 'c', b: 'd' });
 
       await run('test', { x: 'y', m: 'n' });
 
-      off();
       expect(data).to.eql({
         x: 'y',
         a: 'c',
@@ -331,7 +309,7 @@ describe('Haki', () => {
         abortOnFail: true,
         prompts: [{ type: 'x' }],
       }).then(shallFail).catch(error => {
-        expect(error.message).to.contain('Prompt "x" is not registered');
+        expect(error.message).to.contain('prompt type (x) is not defined');
       });
     });
 
@@ -341,21 +319,6 @@ describe('Haki', () => {
         actions() {
           throw new Error('FAIL');
         },
-      }).then(shallFail).catch(error => {
-        expect(error.message).to.contain('FAIL');
-      });
-    });
-
-    // FIXME: enquirer does not catch errors inside validators?
-    it.skip('will fail on broken prompts', async () => {
-      send('y');
-      await haki.runGenerator({
-        abortOnFail: true,
-        prompts: [{
-          name: 'x',
-          message: 'Say something:',
-          validate: () => { throw new Error('FAIL'); },
-        }],
       }).then(shallFail).catch(error => {
         expect(error.message).to.contain('FAIL');
       });

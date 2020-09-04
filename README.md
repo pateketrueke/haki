@@ -49,7 +49,7 @@ Available methods:
 
 - `load(filepath: String)` &mdash; Load a Hakifile from given filepath
 - `prompt(options: Object)` &mdash; Generic prompting helper, see options below
-- `getEnquirer()` &mdash; Returns [Enquirer](https://github.com/enquirer/enquirer) instance
+- `getPrompts()` &mdash; Returns [Prompts](https://github.com/terkelg/prompts) instance
 - `getLogger()` &mdash; Returns [LogPose](https://github.com/pateketrueke/log-pose) instance
 - `getPath(destName: String)` &mdash; Returns a filepath for output
 - `addHelper(name: String, callback: Function)` &mdash; Register a [Mustache](https://github.com/janl/mustache.js/) helper for calling on templates
@@ -105,21 +105,13 @@ Definitions can contain:
 
 #### Prompts
 
-Prompting is being done by Enquirer, so any syntax supported is valid, e.g.
+User input is being done by **Prompts**, so any syntax supported is valid, e.g.
 
 - `type: String` &mdash; Generator type <sup>1</sup>
 - `name: String` &mdash; Input name
 - `message: String` &mdash; Optional label
 
-> <sup>1</sup> All [built-in prompts](https://github.com/enquirer/enquirer#built-in-prompts) are supported by default.
-
-Additional prompts and plugins can be registered this way:
-```js
-const enquirer = haki.getEnquirer();
-
-enquirer.use(require('enquirer-plugin'));
-enquirer.register('test', require('./my-prompt'));
-```
+> <sup>1</sup> Check which [types](https://github.com/terkelg/prompts#-types) are supported by default.
 
 ## Global usage
 
