@@ -1,6 +1,8 @@
 # Haki
 
-![Ryou Haki](https://cdn.lanetaneta.com/wp-content/uploads/2020/08/1597113488_One-Piece-revela-un-nuevo-nombre-para-Haki-780x470.webp)
+<div align="center">
+<img src="https://cdn.lanetaneta.com/wp-content/uploads/2020/08/1597113488_One-Piece-revela-un-nuevo-nombre-para-Haki-780x470.webp" />
+</div>
 
 [![NPM version](https://badge.fury.io/js/haki.png)](http://badge.fury.io/js/haki)
 [![travis-ci](https://api.travis-ci.org/pateketrueke/haki.svg)](https://travis-ci.org/pateketrueke/haki)
