@@ -84,7 +84,17 @@ Valid options are:
 
 #### Actions
 
-Enumerated actions can perform several tasks based on its definition.
+Enumerated actions can perform several tasks based on its definition:
+
+- `modify` &mdash; Allow to rewrite a file performing regexp replacements.
+- `copy` &mdash; Allow to between files and directories
+- `add` &mdash; Allow to write new files
+- `exec` &mdash; Invokes a shell instruction
+- `clean` &mdash; Removes a file or directory
+- `clone` &mdash; Downloads github repository
+- `render` &mdash; Rewrite dynamic files or directories
+- `extend` &mdash; Rewrite JSON file through extending it
+- `install` &mdash; Get your dependencies through NPM or Yarn
 
 Definitions can contain:
 
@@ -106,6 +116,20 @@ Definitions can contain:
 - `quiet: Boolean` &mdash; Override generator's `quiet` value
 - `abortOnFail: Boolean` &mdash; Override generator's `abortOnFail` value
 
+> Rendering means templates are evaluated from all matching files, including its contents if they're plain text.
+
+Example:
+
+```js
+haki.runGenerator({
+  abortOnFail: true,
+  actions: [{ clone: 'pateketrueke/empty', dest: '/tmp' }],
+});
+```
+
+> Notice `{ type:  'clone', src: 'foo/bar' }` and `{ clone: 'foo/bar' }` are equivalents
+> &mdash; the used value for the given type is taken as its `src` option instead.
+
 #### Prompts
 
 User input is being done by **Prompts**, so any syntax supported is valid, e.g.
@@ -113,6 +137,16 @@ User input is being done by **Prompts**, so any syntax supported is valid, e.g.
 - `type: String` &mdash; Generator type <sup>1</sup>
 - `name: String` &mdash; Input name
 - `message: String` &mdash; Optional label
+
+Example:
+
+```js
+haki.prompt({
+  type: 'toggle',
+  name: 'user_confirmation',
+  message: 'Enable this feature',
+});
+```
 
 > <sup>1</sup> Check which [types](https://github.com/terkelg/prompts#-types) are supported by default.
 
@@ -156,3 +190,5 @@ Download github repositories with:
 ```bash
 $ haki <USER/REPO> <DEST>
 ```
+
+> After downloading, haki performs a `render` action on the destination folder so all templates will be rendered as needed.
