@@ -39,13 +39,14 @@
     "download-github-repo": "^0.1.4",
     "fs-extra": "^9.0.1",
     "glob": "^7.1.2",
-    "log-pose": "^0.3.4",
+    "log-pose": "^0.3.7",
     "mustache": "^4.0.1",
     "pluralize": "^8.0.0",
     "pretty-ms": "^7.0.0",
     "prompts": "^2.3.2",
     "rimraf": "^3.0.2",
-    "wargs": "^0.9.1"
+    "text-extensions": "^2.1.0",
+    "wargs": "^0.9.2"
   },
   "devDependencies": {
     "bl": ">=2.2.1",

@@ -345,21 +345,13 @@ function run() {
         util.die(1);
       }
 
-      log(false, `Fetching ${src} from GitHub ...`, () => {
-        return new Promise((resolve, reject) => {
-          require('download-github-repo')(src, path.resolve(dest), err => {
-            if (err) {
-              reject(new Error(`Not found https://github.com/${src}`));
-            } else {
-              resolve();
-            }
-          });
-        });
-      }).catch(e => {
-        showError(e);
+      return haki.runGenerator({
+        abortOnFail: true,
+        actions: [{ clone: src, dest }],
+      }, util.extend({}, $.data, $.params, CONFIG)).catch(e => {
+        showError(new Error(`Failed to setup https://github.com/${src}\n  ${e.message}`));
         util.die(1);
       });
-      return;
     }
 
     log.printf('{% fail invalid input, add --help for usage info %}\r\n');

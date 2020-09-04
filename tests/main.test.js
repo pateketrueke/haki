@@ -223,43 +223,22 @@ describe('Haki', () => {
     });
   });
 
-  it('will use default validators', async () => {
-    let test = null;
-
-    const { values } = await haki.runGenerator({
-      validate: {
-        sample: v => {
-          test = v;
-          return v === 'yes' || 'nope';
-        },
-      },
-      prompts: [{
-        name: 'sample',
-      }],
-    }, {
-      sample: 'yes',
-    });
-
-    expect(test).to.eql('yes');
-    expect(values).to.eql({ sample: 'yes' });
-  });
-
   it('will render given sources', async () => {
+    send(['boolean', true, 'FOO', 'BAR', 'boolean', true, '!']);
+
     await haki.runGenerator({
       actions: [{
         add: 'foo.txt',
         content: '{{value}}',
       }, {
         add: 'bar.txt',
-        content: '{{value}}',
+        content: '{{#flag}}{{foo}}{{bar}}{{/flag}}{{#a}}{{b}}{{/a}}',
       }, {
         render: 'bar.txt',
       }],
-    }, {
-      value: 'foo',
     }).then(result => {
       expect(readFile('foo.txt')).to.eql('{{value}}');
-      expect(readFile('bar.txt')).to.eql('foo');
+      expect(readFile('bar.txt')).to.eql('FOOBAR!');
       expect(result.changes).to.eql([
         { type: 'add', dest: 'foo.txt' },
         { type: 'add', dest: 'bar.txt' },
@@ -398,8 +377,9 @@ describe('Haki', () => {
       });
     });
 
-    // FIXME: how to provide a value from a list?
-    it.skip('will report on copy duplicates', async () => {
+    it('will report on copy duplicates', async () => {
+      send(['abort']);
+
       await haki.runGenerator({
         abortOnFail: true,
         basePath: fixturesPath,
@@ -408,7 +388,7 @@ describe('Haki', () => {
           { copy: 'dest', src: 'templates/test.txt' },
         ],
       }).then(shallFail).catch(error => {
-        expect(error.message).to.match(/Source '.*test\.txt' cannot be copied/);
+        expect(error.message).to.match(/Source '.*test\.txt' won't be copied/);
       });
     });
 
@@ -423,12 +403,15 @@ describe('Haki', () => {
     });
 
     it('will clone given repos', async () => {
+      send(['My Example', 'boolean', true, 'OSOMS', '42']);
+
       await haki.runGenerator({
         actions: [
           { dest: '.', clone: 'pateketrueke/empty' },
         ],
       }).then(result => {
-        expect(readFile('README.md')).to.contain('# Empty');
+        expect(readFile('README.md')).to.eql('# Empty\n42\n');
+        expect(readFile('my_example.md')).to.eql('# My Example\n\n## Osoms\n');
         expect(result.changes).to.eql([{ type: 'clone', repository: 'pateketrueke/empty' }]);
       });
     });
@@ -438,14 +421,7 @@ describe('Haki', () => {
         actions: [
           {
             add: 'package.json',
-            content: `
-              {
-                "name": "example",
-                "dependencies": {
-                  "noop": "*"
-                }
-              }
-            `,
+            content: '{ "name": "example", "dependencies": { "noop": "*" } }',
           },
           { install: [], dest: '.' },
         ],

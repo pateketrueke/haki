@@ -73,6 +73,7 @@ Valid options are:
 - `arguments: Array` &mdash; Map extra `argv` as input
 - `actions: Array|Function` &mdash; [See below](#actions)
 - `prompts: Array|Function` &mdash; [See below](#prompts)
+- `defaults: Object` &mdash; Initial values
 - `quiet: Boolean` &mdash; Hide output from logs
 - `basePath: String` &mdash; Resolve sources from here
 - `abortOnFail: Boolean` &mdash; Abort whole process on failure
