@@ -26,7 +26,7 @@ const ttyOn = () => {
 let haki;
 
 // safe wrappers
-const send = (values) => {
+const send = values => {
   if (Array.isArray(values)) {
     haki.getPrompts().inject(values);
   } else {
@@ -170,7 +170,7 @@ describe('Haki', () => {
 
     expect(haki.getHelperList()).to.contain('pkg');
     expect(haki.renderString('{{pkg name}}')).to.eql('haki');
-    expect(haki.renderString('{{pkg dependencies.chalk}}')).to.eql('^2.3.0');
+    expect(haki.renderString('{{pkg dependencies.chalk}}')).to.eql('^4.1.0');
   });
 
   it('will export renderString()', () => {

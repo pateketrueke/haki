@@ -30,7 +30,7 @@
     "coverage:unit": "npm run coverage -- npm run test:unit",
     "codecov": "codecov --file=coverage/lcov.info -e TRAVIS_NODE_VERSION",
     "report": "nyc report",
-    "xpretest": "npm run lint"
+    "pretest": "npm run lint"
   },
   "dependencies": {
     "chalk": "^4.1.0",
@@ -48,6 +48,7 @@
     "wargs": "^0.9.1"
   },
   "devDependencies": {
+    "bl": ">=2.2.1",
     "chai": "^4.2.0",
     "codecov": "^3.1.0",
     "eslint": "^7.8.1",
