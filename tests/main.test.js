@@ -224,7 +224,7 @@ describe('Haki', () => {
   });
 
   it('will render given sources', async () => {
-    send(['boolean', true, 'FOO', 'BAR', 'boolean', true, '!']);
+    send(['1', 'FOO', 'BAR', '', '1', '!', '']);
 
     await haki.runGenerator({
       actions: [{
@@ -403,7 +403,7 @@ describe('Haki', () => {
     });
 
     it('will clone given repos', async () => {
-      send(['My Example', 'boolean', true, 'OSOMS', '42']);
+      send(['My Example', 'y', 'OSOMS', '', 42]);
 
       await haki.runGenerator({
         actions: [
